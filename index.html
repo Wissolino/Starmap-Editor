@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>SlateStar V32 - Final Validation + Clean Ring</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond:wght@400;700&family=Montserrat:wght@300;500;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --bg:#0d0d0e; --panel:#1a1a1c; --gold:#d4af37; --text:#ffffff; --error:#ff4444; --success:#4caf50; }
+    body { font-family:'Montserrat',sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; padding:20px; margin:0; }
+    .app { display:grid; grid-template-columns:380px 1fr; gap:40px; width:100%; max-width:1400px; }
+    .sidebar { background:var(--panel); padding:25px; border-radius:12px; border:1px solid #333; height:fit-content; }
+    h2 { color:var(--gold); text-transform:uppercase; letter-spacing:2px; border-bottom:1px solid #333; padding-bottom:15px; margin-top:0; font-weight:300; }
+
+    .mode-switch { display:flex; gap:0; margin-bottom:25px; border:1px solid #444; border-radius:6px; overflow:hidden; }
+    .mode-btn { flex:1; padding:15px; background:#252629; border:none; color:#888; cursor:pointer; text-transform:uppercase; font-size:.8rem; font-weight:bold; transition:.2s; }
+    .mode-btn.active { background:var(--gold); color:#111; }
+
+    .group { margin-bottom:15px; display:none; }
+    .group.visible { display:block; }
+
+    label { display:block; font-size:.7rem; color:#aaa; text-transform:uppercase; margin-bottom:5px; letter-spacing:1px; font-weight:600; }
+
+    .input-row { display:flex; align-items:stretch; gap:8px; }
+
+    input:not([type="checkbox"]), select {
+      flex-grow:1;
+      padding:12px;
+      background:#252629; color:#fff;
+      border:1px solid #444;
+      border-left:5px solid #444;
+      border-radius:4px; box-sizing:border-box; font-size:1rem;
+      transition:all .2s;
+    }
+    select option { background-color:#252629; color:#fff; padding:10px; }
+
+    .toggle-check {
+      width:24px;
+      height:24px;
+      margin:0;
+      cursor:pointer;
+      accent-color:var(--gold);
+      border:1px solid #444;
+      background:#333;
+      border-radius:4px;
+    }
+
+    input:disabled, select:disabled {
+      opacity:.3;
+      background:#151515;
+      border-color:#333;
+      color:#555;
+      cursor:not-allowed;
+    }
+
+    .missing { border-color:var(--error) !important; border-left-color:var(--error) !important; background:rgba(255,68,68,.1) !important; }
+    .valid { border-color:var(--success) !important; border-left-color:var(--success) !important; background:rgba(76,175,80,.1) !important; }
+
+    input:focus:not(:disabled), select:focus:not(:disabled) { outline:none; border-color:var(--gold); }
+    ::placeholder { color:#555; font-style:italic; }
+
+    .status { font-size:.7rem; color:#666; margin-top:3px; text-align:right; min-height:15px; }
+
+    .btn {
+      width:100%; padding:18px;
+      background:linear-gradient(135deg,var(--gold),#b39224);
+      border:none; font-weight:800; cursor:pointer; border-radius:6px; margin-top:25px;
+      text-transform:uppercase; color:#111;
+      transition:all .3s; opacity:1;
+    }
+    .btn:disabled { background:#444; color:#888; cursor:not-allowed; opacity:.5; }
+
+    .preview { display:flex; justify-content:center; align-items:flex-start; }
+    .slate {
+      position:relative; width:620px; height:620px;
+      background:#1a1a1a; border:10px solid #111; box-shadow:0 30px 80px rgba(0,0,0,.6);
+      background-image:radial-gradient(circle at 50% 50%, #2d2f31, #111);
+      overflow:hidden;
+    }
+    canvas { width:100%; height:100%; mix-blend-mode:screen; }
+
+    /* Location dropdown menu (custom, premium) */
+    .loc-wrap { position:relative; flex-grow:1; }
+    .loc-wrap input { width:100%; }
+    .loc-menu {
+      position:absolute;
+      left:0; right:0;
+      top:calc(100% + 6px);
+      background:#1d1e21;
+      border:1px solid #3a3a3a;
+      border-radius:10px;
+      box-shadow:0 18px 50px rgba(0,0,0,.55);
+      overflow:hidden;
+      z-index:50;
+      max-height:240px;
+      overflow-y:auto;
+    }
+    .loc-item {
+      padding:12px 12px;
+      cursor:pointer;
+      font-size:.92rem;
+      color:#e9e9e9;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .loc-item:last-child { border-bottom:none; }
+    .loc-item:hover { background:#252629; }
+    .loc-item.active { background:rgba(212,175,55,.18); }
+    .loc-badge {
+      font-size:.72rem;
+      letter-spacing:1px;
+      color:#cfcfcf;
+      border:1px solid rgba(255,255,255,.12);
+      padding:3px 8px;
+      border-radius:999px;
+      flex:0 0 auto;
+    }
+    .loc-main { font-weight:600; color:#fff; }
+    .loc-sub { font-size:.78rem; color:#bdbdbd; margin-top:2px; }
+    .loc-text { display:flex; flex-direction:column; min-width:0; }
+    .loc-main, .loc-sub { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <h2>SlateStar <small>V32</small></h2>
+
+    <div class="mode-switch">
+      <button class="mode-btn active" onclick="setMode('date')" id="btnDate">Nach Datum</button>
+      <button class="mode-btn" onclick="setMode('zodiac')" id="btnZodiac">Sternzeichen</button>
+    </div>
+
+    <div class="group visible">
+      <label>1. Name / Widmung (Max 18)</label>
+      <div class="input-row">
+        <input type="text" id="title" class="missing input-nav" placeholder="Namen hier eintippen..." maxlength="18" oninput="markTouched(this.id); validateAndRender()">
+        <input type="checkbox" id="checkTitle" class="toggle-check" checked onchange="toggleField('title','checkTitle')">
+      </div>
+    </div>
+
+    <div id="grpDate" class="group visible">
+      <label>2. Datum</label>
+      <div class="input-row">
+        <input type="date" id="date" class="missing input-nav" oninput="markTouched(this.id); validateAndRender()">
+        <input type="checkbox" id="checkDate" class="toggle-check" checked onchange="toggleField('date','checkDate')">
+      </div>
+    </div>
+
+    <div id="grpTime" class="group visible">
+      <label>3. Uhrzeit</label>
+      <div class="input-row">
+        <input type="time" id="time" class="input-nav" value="22:30" disabled oninput="markTouched(this.id); validateAndRender()">
+        <input type="checkbox" id="checkTime" class="toggle-check" onchange="toggleField('time','checkTime')">
+      </div>
+    </div>
+
+    <div id="grpLoc" class="group visible">
+      <label>4. Ort oder PLZ</label>
+      <div class="input-row">
+        <div class="loc-wrap">
+          <input type="text" id="loc" class="missing input-nav" placeholder="Stadt oder PLZ..." autocomplete="off" oninput="markTouched('loc'); debouncedSearch()">
+          <div id="locMenu" class="loc-menu" hidden></div>
+        </div>
+        <input type="checkbox" id="checkLoc" class="toggle-check" checked onchange="toggleField('loc','checkLoc')">
+      </div>      <div id="locStatus" class="status">Pflichtfeld</div>
+      <div class="status" id="locHint" style="text-align:left; color:#666; margin-top:6px;"></div>
+    </div>
+
+    <div id="grpZodiac" class="group">
+      <label>2. Wähle Sternzeichen</label>
+      <div class="input-row">
+        <select id="zodiac" class="valid input-nav" onchange="validateAndRender()">
+          <option value="loewe" selected>Löwe</option>
+          <option value="skorpion">Skorpion</option>
+          <option value="orion">Orion</option>
+          <option value="zwillinge">Zwillinge</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="grpCustomText" class="group">
+      <label>3. Datum / Text</label>
+      <div class="input-row">
+        <input type="text" id="customText" class="missing input-nav" placeholder="z.B. 24.07.1995" oninput="markTouched(this.id); validateAndRender()">
+        <input type="checkbox" id="checkCustomText" class="toggle-check" checked onchange="toggleField('customText','checkCustomText')">
+      </div>
+    </div>
+
+    <div class="group visible">
+      <label>5. Schriftart Wählen</label>
+      <select id="font" class="missing input-nav" onchange="validateAndRender()">
+        <option value="" disabled selected>-- BITTE WÄHLEN --</option>
+        <option value="'Montserrat', sans-serif">Modern (Montserrat)</option>
+        <option value="'EB Garamond', serif">Klassisch (Garamond)</option>
+        <option value="'Cinzel', serif">Römisch (Cinzel)</option>
+        <option value="'Playfair Display', serif">Luxuriös (Playfair)</option>
+      </select>
+    </div>
+
+    <div class="group visible">
+      <label>6. Montage Wählen</label>
+      <select id="mount" class="missing input-nav" onchange="validateAndRender()">
+        <option value="" disabled selected>-- BITTE WÄHLEN --</option>
+        <option value="stand">Holzständer (Volle Fläche)</option>
+        <option value="wall">Wand (2 Löcher)</option>
+      </select>
+    </div>
+
+    <button id="dlBtn" class="btn" onclick="download()" disabled>Bitte alles ausfüllen</button>
+  </div>
+
+  <div class="preview">
+    <div class="slate">
+      <canvas id="cvs" width="2362" height="2362"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+let APP_MODE = 'date';
+
+// NOTE: If you open this as a local file (file://), many browsers block fetch() to external APIs.
+// The star map still works, but the location search may fail. Serve via http(s) (e.g., http://localhost) for full features.
+const IS_FILE_PROTOCOL = (location.protocol === 'file:');
+
+// --- Touched/dirty-state handling (prevents fields turning green just by enabling)
+const TOUCH_IDS = ['date','time','loc','customText'];
+function initTouched() {
+  for (const id of TOUCH_IDS) {
+    const el = document.getElementById(id);
+    if (el) el.dataset.touched = '0';
+  }
+}
+function markTouched(id) {
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  // Only mark as touched when the user can actually edit it
+  if (el.disabled) return;
+  el.dataset.touched = '1';
+}
+
+
+// Default Germany center
+let GEO = { lat: 51.16, lon: 10.45, name: '' };
+
+const S = 2362;
+const PX_CM = S / 20;
+
+// Laser style (B)
+const LASER = {
+  STAR_SHAPE: 'circle',      // circles only
+  STAR_MIN_R: 2.8,
+  STAR_MAX_R: 10.5,
+  LINE_WIDTH: 2.0,           // set to 1.0 if you want ultra-thin
+  THRESHOLD: 127,
+};
+
+const ctx = document.getElementById('cvs').getContext('2d');
+
+// init touched flags once DOM is ready
+initTouched();
+
+// Location menu keyboard + focus handling
+(function initLocMenuUI(){
+  const input = document.getElementById('loc');
+  if (!input) return;
+
+  input.addEventListener('focus', () => {
+    if (SUGGESTIONS.length) renderLocMenu();
+  });
+
+  input.addEventListener('blur', () => {
+    // tiny delay so click selection can register
+    setTimeout(() => hideLocMenu(), 120);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (document.getElementById('locMenu')?.hidden !== false) {
+      if (e.key === 'ArrowDown' && SUGGESTIONS.length) {
+        e.preventDefault();
+        renderLocMenu();
+        setLocActive(0);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setLocActive((locActiveIndex < 0 ? 0 : locActiveIndex + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setLocActive((locActiveIndex <= 0 ? 0 : locActiveIndex - 1));
+    } else if (e.key === 'Enter') {
+      if (locActiveIndex >= 0 && SUGGESTIONS[locActiveIndex]) {
+        e.preventDefault();
+        applyLocSuggestion(SUGGESTIONS[locActiveIndex], '✓ Ausgewählt');
+        hideLocMenu();
+        validateAndRender();
+      }
+    } else if (e.key === 'Escape') {
+      hideLocMenu();
+    }
+  });
+})();
+
+// --- Background starfield (static)
+let STATIC_BG_STARS = [];
+function initBackgroundStars() {
+  const radius = 7 * PX_CM;
+  for (let i = 0; i < 9000; i++) {
+    const r = Math.sqrt(Math.random()) * radius;
+    const a = Math.random() * Math.PI * 2;
+    const size = Math.random() * 0.7 + 0.7;
+    STATIC_BG_STARS.push({ x: r * Math.cos(a), y: r * Math.sin(a), size });
+  }
+}
+initBackgroundStars();
+
+// --- FIX: Canvas has no letterSpacing => draw with tracking
+function drawTextWithTracking(ctx, text, x, y, trackingPx) {
+  if (!text) return;
+  const chars = Array.from(text);
+  let total = 0;
+  for (const ch of chars) total += ctx.measureText(ch).width;
+  total += trackingPx * (chars.length - 1);
+  let startX = x - total / 2;
+  for (const ch of chars) {
+    const w = ctx.measureText(ch).width;
+    ctx.fillText(ch, startX + w / 2, y);
+    startX += w + trackingPx;
+  }
+}
+
+function setValidity(el, isValid) {
+  if (isValid) { el.classList.remove('missing'); el.classList.add('valid'); }
+  else { el.classList.add('missing'); el.classList.remove('valid'); }
+}
+
+// --- NAV: Enter jumps to next visible input
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') {
+    const inputs = Array.from(document.querySelectorAll('.input-nav'));
+    const visibleInputs = inputs.filter(el => el.offsetParent !== null && !el.disabled);
+    const index = visibleInputs.indexOf(e.target);
+    if (index > -1 && index < visibleInputs.length - 1) visibleInputs[index + 1].focus();
+  }
+});
+
+function setMode(mode) {
+  APP_MODE = mode;
+  document.getElementById('btnDate').className = mode === 'date' ? 'mode-btn active' : 'mode-btn';
+  document.getElementById('btnZodiac').className = mode === 'zodiac' ? 'mode-btn active' : 'mode-btn';
+
+  document.getElementById('grpDate').style.display = mode === 'date' ? 'block' : 'none';
+  document.getElementById('grpTime').style.display = mode === 'date' ? 'block' : 'none';
+  document.getElementById('grpLoc').style.display = mode === 'date' ? 'block' : 'none';
+
+  document.getElementById('grpZodiac').style.display = mode === 'zodiac' ? 'block' : 'none';
+  document.getElementById('grpCustomText').style.display = mode === 'zodiac' ? 'block' : 'none';
+
+  validateAndRender();
+}
+
+// --- Toggle checkbox enable/disable
+function toggleField(inputId, checkId) {
+  const isChecked = document.getElementById(checkId).checked;
+  const input = document.getElementById(inputId);
+  input.disabled = !isChecked;
+
+  // Critical: enabling must NOT auto-validate green
+  // Reset touched flag and visual state until user edits the field.
+  if (TOUCH_IDS.includes(inputId)) input.dataset.touched = '0';
+  input.classList.remove('valid');
+  if (isChecked && (inputId === 'date' || inputId === 'loc' || inputId === 'customText')) {
+    input.classList.add('missing');
+  }
+  if (isChecked && inputId === 'time') {
+    // time is optional -> only show missing when enabled, but never green until touched
+    input.classList.add('missing');
+  }
+
+  if (inputId === 'loc') {
+    const status = document.getElementById('locStatus');
+    status.innerText = isChecked ? 'Pflichtfeld' : '';
+    status.style.color = '#666';
+  }
+
+  validateAndRender();
+}
+
+// --- Nominatim caching + abort (silent)
+const GEO_CACHE_KEY = 'slatestar_geo_cache_v2';
+function loadGeoCache() {
+  try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); } catch { return {}; }
+}
+function saveGeoCache(cache) {
+  try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache)); } catch {}
+}
+let geoCache = loadGeoCache();
+let geoAbort = null;
+let SUGGESTIONS = []; // array of {label, main, sub, badge, lat, lon, name}
+let locActiveIndex = -1;
+let locLastQuery = '';
+
+let timer;
+function debouncedSearch() {
+  const input = document.getElementById('loc');
+  const val = input.value.trim();
+
+  const checkbox = document.getElementById('checkLoc');
+  // Only mark valid if user actually typed (touched) AND length ok
+  if (checkbox.checked) setValidity(input, val.length > 1 && input.dataset.touched === '1');
+
+  const status = document.getElementById('locStatus');
+  status.innerText = val.length > 1 ? '⏳ Suche...' : 'Pflichtfeld';
+  status.style.color = '#666';
+
+  // Hide menu if query too short
+  if (val.length < 2) hideLocMenu();
+
+  clearTimeout(timer);
+  timer = setTimeout(() => geocode(val), 380);
+}
+
+async function geocode(q) {
+  // Local-file safety: browsers often block external requests from file://
+  if (IS_FILE_PROTOCOL) {
+    const status = document.getElementById('locStatus');
+    if (status) {
+      status.innerText = '⚠️ Ortssuche lokal blockiert (bitte über http öffnen)';
+      status.style.color = '#aaa';
+    }
+    hideLocMenu();
+    return;
+  }
+  const status = document.getElementById('locStatus');
+  const input = document.getElementById('loc');
+
+  if (!document.getElementById('checkLoc').checked) return;
+  if (!q || q.length < 2) {
+    hideLocMenu();
+    return;
+  }
+
+  // If user selected an exact label from our menu previously
+  const picked = SUGGESTIONS.find(s => s.label === q);
+  if (picked) {
+    applyLocSuggestion(picked, '✓ Ausgewählt');
+    hideLocMenu();
+    return;
+  }
+
+  // Cache shortcut (store best-known place name + coords, independent of scope)
+  const key = q.toLowerCase();
+  if (geoCache[key]) {
+    GEO.lat = geoCache[key].lat;
+    GEO.lon = geoCache[key].lon;
+    GEO.name = geoCache[key].name;
+    status.innerText = '✓ Gefunden';
+    status.style.color = '#4caf50';
+    hideLocMenu();
+    render();
+    return;
+  }
+
+  if (geoAbort) geoAbort.abort();
+  geoAbort = new AbortController();
+
+  function extractPlaceName(item, fallback) {
+    const addr = item.address || {};
+    const name = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || addr.county || addr.state;
+    if (name) return name;
+
+    const parts = String(item.display_name || fallback).split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length > 1 && /^[0-9]{4,5}$/.test(parts[0])) return parts[1];
+    return parts[0] || fallback;
+  }
+
+  function extractBadge(item, scope) {
+    const addr = item.address || {};
+    const pc = addr.postcode;
+    if (pc && /^[0-9]{4,5}$/.test(String(pc))) return String(pc);
+    return scope === 'world' ? 'INT' : 'ORT';
+  }
+
+  function withTimeout(ms, promise) {
+    let t;
+    const timeout = new Promise((_, rej) => {
+      t = setTimeout(() => rej(new Error('timeout')), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
+  }
+
+  const DACH_CC = new Set(['de','at','ch']);
+
+  async function fetchPhoton(scope) {
+    // Photon is OSM-based and generally more reliable for client-side use.
+    const url = 'https://photon.komoot.io/api/?limit=8&lang=de&q=' + encodeURIComponent(q);
+    const r = await withTimeout(3500, fetch(url, { signal: geoAbort.signal, headers: { 'Accept': 'application/json' } }));
+    const j = await r.json();
+    const feats = Array.isArray(j?.features) ? j.features : [];
+
+    const out = [];
+    for (const f of feats) {
+      const p = f.properties || {};
+      const cc = String(p.countrycode || '').toLowerCase();
+      if (scope === 'dach' && cc && !DACH_CC.has(cc)) continue;
+
+      const coords = f.geometry?.coordinates;
+      if (!Array.isArray(coords) || coords.length < 2) continue;
+      const lon = parseFloat(coords[0]);
+      const lat = parseFloat(coords[1]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+
+      const placeName = p.city || p.town || p.village || p.name || p.state || p.county || q;
+      const badge = (p.postcode && /^[0-9]{4,5}$/.test(String(p.postcode))) ? String(p.postcode) : (scope === 'world' ? 'INT' : 'ORT');
+
+      const subParts = [];
+      if (p.state && p.state !== placeName) subParts.push(p.state);
+      if (p.country) subParts.push(p.country);
+      const sub = subParts.join(', ');
+
+      const labelParts = [placeName];
+      if (p.postcode) labelParts.push(String(p.postcode));
+      if (p.country) labelParts.push(p.country);
+      const label = labelParts.filter(Boolean).join(', ');
+
+      out.push({ label, main: placeName, sub, badge, lat, lon, name: placeName });
+    }
+
+    return out.slice(0, 6);
+  }
+
+  async function fetchNominatim(scope) {
+    // Secondary fallback (best-effort)
+    const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=' + encodeURIComponent(q);
+    const url = scope === 'dach' ? (base + '&countrycodes=de,at,ch') : base;
+    const r = await withTimeout(3500, fetch(url, { signal: geoAbort.signal, headers: { 'Accept': 'application/json' } }));
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  }
+
+  async function fetchPlaces(scope) {
+    try {
+      const ph = await fetchPhoton(scope);
+      if (ph.length) return { source: 'photon', scope, results: ph };
+    } catch (_) {}
+
+    try {
+      const nom = await fetchNominatim(scope);
+      return { source: 'nominatim', scope, results: nom };
+    } catch (_) {
+      return { source: 'none', scope, results: [] };
+    }
+  }
+
+  try {
+    locLastQuery = q;
+
+    // 1) Try DACH first (fast, clean)
+    let scope = 'dach';
+    let pack = await fetchPlaces('dach');
+    let d = pack.results;
+
+    // 2) Auto-fallback to worldwide if no hit
+    if (!d.length) {
+      scope = 'world';
+      pack = await fetchPlaces('world');
+      d = pack.results;
+    }
+
+    SUGGESTIONS = [];
+    locActiveIndex = -1;
+
+    // If Photon returned normalized suggestions, use them directly.
+    const isPhoton = Array.isArray(d) && d.length && d[0] && Object.prototype.hasOwnProperty.call(d[0], 'lat') && Object.prototype.hasOwnProperty.call(d[0], 'label');
+
+    if (d.length > 0) {
+      if (isPhoton) {
+        for (const s of d) SUGGESTIONS.push(s);
+      } else {
+        for (const item of d) {
+        const placeName = extractPlaceName(item, q);
+        const badge = extractBadge(item, scope);
+
+        const parts = String(item.display_name || '').split(',').map(s => s.trim()).filter(Boolean);
+        const sub = parts.slice(1, 4).join(', ');
+        const label = (parts.slice(0, 4).join(', ') || placeName).trim();
+
+        SUGGESTIONS.push({
+          label,
+          main: placeName,
+          sub,
+          badge,
+          lat: parseFloat(item.lat),
+          lon: parseFloat(item.lon),
+          name: placeName,
+        });
+      }
+      }
+
+      // Apply best result as default GEO (but always show city name)
+      const best = SUGGESTIONS[0];
+      GEO.lat = best.lat;
+      GEO.lon = best.lon;
+      GEO.name = best.name;
+
+      geoCache[key] = { lat: GEO.lat, lon: GEO.lon, name: GEO.name, t: Date.now() };
+      saveGeoCache(geoCache);
+
+      status.innerText = scope === 'world' ? '✓ Gefunden (International)' : '✓ Gefunden';
+      status.style.color = '#4caf50';
+
+      renderLocMenu();
+      render();
+    } else {
+      hideLocMenu();
+      status.innerText = '❓ Nicht gefunden (Druck ok)';
+      status.style.color = '#aaa';
+      render();
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    hideLocMenu();
+    status.innerText = '⚠️ Suche nicht verfügbar (Druck ok)';
+    status.style.color = '#aaa';
+    render();
+  }
+}
+
+function applyLocSuggestion(s, statusText) {
+  const status = document.getElementById('locStatus');
+  const input = document.getElementById('loc');
+
+  GEO.lat = s.lat;
+  GEO.lon = s.lon;
+  GEO.name = s.name;
+
+  // Put a clean label in the input (still lets user overwrite)
+  input.value = s.label;
+  input.dataset.touched = '1';
+
+  status.innerText = statusText || '✓ Ausgewählt';
+  status.style.color = '#4caf50';
+
+  // keep field validity correct
+  setValidity(input, input.value.trim().length > 1);
+  render();
+}
+
+function renderLocMenu() {
+  const menu = document.getElementById('locMenu');
+  const input = document.getElementById('loc');
+
+  if (!menu) return;
+  if (!SUGGESTIONS || SUGGESTIONS.length === 0) {
+    hideLocMenu();
+    return;
+  }
+
+  // Only show if the user is currently typing in this field
+  if (document.activeElement !== input) {
+    hideLocMenu();
+    return;
+  }
+
+  menu.innerHTML = '';
+  for (let i = 0; i < SUGGESTIONS.length; i++) {
+    const s = SUGGESTIONS[i];
+    const row = document.createElement('div');
+    row.className = 'loc-item' + (i === locActiveIndex ? ' active' : '');
+
+    const badge = document.createElement('div');
+    badge.className = 'loc-badge';
+    badge.textContent = s.badge || 'ORT';
+
+    const text = document.createElement('div');
+    text.className = 'loc-text';
+
+    const main = document.createElement('div');
+    main.className = 'loc-main';
+    main.textContent = s.main;
+
+    const sub = document.createElement('div');
+    sub.className = 'loc-sub';
+    sub.textContent = s.sub;
+
+    text.appendChild(main);
+    if (s.sub) text.appendChild(sub);
+
+    row.appendChild(badge);
+    row.appendChild(text);
+
+    // Use mousedown so it fires before blur
+    row.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      applyLocSuggestion(s, '✓ Ausgewählt');
+      hideLocMenu();
+      validateAndRender();
+    });
+
+    menu.appendChild(row);
+  }
+
+  menu.hidden = false;
+}
+
+function hideLocMenu() {
+  const menu = document.getElementById('locMenu');
+  if (!menu) return;
+  menu.hidden = true;
+  menu.innerHTML = '';
+  locActiveIndex = -1;
+}
+
+function setLocActive(index) {
+  locActiveIndex = Math.max(0, Math.min(index, SUGGESTIONS.length - 1));
+  renderLocMenu();
+
+  // ensure active item is visible
+  const menu = document.getElementById('locMenu');
+  if (!menu || menu.hidden) return;
+  const active = menu.querySelector('.loc-item.active');
+  if (!active) return;
+  const aTop = active.offsetTop;
+  const aBot = aTop + active.offsetHeight;
+  if (aTop < menu.scrollTop) menu.scrollTop = aTop;
+  else if (aBot > menu.scrollTop + menu.clientHeight) menu.scrollTop = aBot - menu.clientHeight;
+}
+
+// --- Zodiac centers (RA/Dec)
+const ZODIAC_CENTER = {
+  loewe: { ra: 10.5, dec: 15 },
+  skorpion: { ra: 16.5, dec: -26 },
+  orion: { ra: 5.5, dec: 0 },
+  zwillinge: { ra: 7.0, dec: 20 }
+};
+
+// (A) Expanded bright-star catalog (approx. RA hours, Dec degrees, Mag)
+// Focus: visually stable, includes many common constellation anchors.
+const STARS = [
+  // Major anchors (very bright)
+  {id:1,  ra:6.752, dec:-16.716, mag:-1.46}, // Sirius
+  {id:2,  ra:14.261,dec:19.182,  mag:-0.05}, // Arcturus
+  {id:3,  ra:5.242, dec:-8.201,  mag:0.18},  // Rigel
+  {id:4,  ra:5.919, dec:7.407,   mag:0.45},  // Betelgeuse
+  {id:5,  ra:18.615,dec:38.783,  mag:0.03},  // Vega
+  {id:6,  ra:7.656, dec:5.225,   mag:0.38},  // Procyon
+  {id:7,  ra:5.278, dec:45.999,  mag:0.08},  // Capella
+  {id:8,  ra:13.419,dec:-11.161, mag:1.04},  // Spica
+  {id:9,  ra:16.490,dec:-26.432, mag:1.06},  // Antares
+  {id:10, ra:19.846,dec:8.868,   mag:0.77},  // Altair
+  {id:11, ra:21.736,dec:9.875,   mag:1.25},  // Deneb (approx)
+  {id:12, ra:4.598, dec:16.509,  mag:0.86},  // Aldebaran
+  {id:13, ra:2.530, dec:89.264,  mag:1.98},  // Polaris
+
+  // Big Dipper / Ursa Major
+  {id:101, ra:11.062,dec:61.750, mag:1.79}, // Dubhe
+  {id:102, ra:11.030,dec:56.382, mag:2.37}, // Merak
+  {id:103, ra:11.897,dec:53.694, mag:2.44}, // Phecda
+  {id:104, ra:12.257,dec:57.033, mag:2.41}, // Megrez
+  {id:105, ra:12.900,dec:55.959, mag:1.85}, // Alioth
+  {id:106, ra:13.398,dec:54.925, mag:2.23}, // Mizar
+  {id:107, ra:13.792,dec:49.314, mag:1.86}, // Alkaid
+
+  // Cassiopeia (W)
+  {id:120, ra:0.675, dec:56.537, mag:2.24}, // Schedar
+  {id:121, ra:1.906, dec:63.670, mag:2.28}, // Caph
+  {id:122, ra:1.430, dec:60.235, mag:2.66}, // Gamma Cas
+  {id:123, ra:0.945, dec:60.717, mag:2.25}, // Ruchbah
+  {id:124, ra:0.152, dec:59.149, mag:3.00}, // Epsilon Cas
+
+  // Orion
+  {id:130, ra:5.919, dec:7.407,  mag:0.45}, // Betelgeuse (dup id avoided below)
+  {id:131, ra:5.242, dec:-8.201, mag:0.18}, // Rigel
+  {id:132, ra:5.603, dec:-1.201, mag:1.70}, // Mintaka
+  {id:133, ra:5.679, dec:-1.943, mag:1.70}, // Alnilam
+  {id:134, ra:5.820, dec:9.934,  mag:1.64}, // Bellatrix
+  {id:135, ra:5.407, dec:-2.397, mag:2.25}, // Alnitak
+  {id:136, ra:5.533, dec:-0.299, mag:2.77}, // Saiph (approx)
+
+  // Taurus / Pleiades-ish anchors
+  {id:140, ra:4.598, dec:16.509, mag:0.86}, // Aldebaran
+  {id:141, ra:3.792, dec:24.105, mag:2.85}, // Elnath-ish (approx)
+
+  // Gemini
+  {id:150, ra:7.576, dec:31.888, mag:1.58}, // Castor
+  {id:151, ra:7.755, dec:28.026, mag:1.14}, // Pollux
+
+  // Leo
+  {id:160, ra:10.140,dec:11.967, mag:1.35}, // Regulus
+  {id:161, ra:11.817,dec:14.572, mag:2.14}, // Denebola
+  {id:162, ra:10.332,dec:19.841, mag:2.00}, // Algieba
+
+  // Scorpius
+  {id:170, ra:16.490,dec:-26.432,mag:1.06}, // Antares
+  {id:171, ra:17.560,dec:-37.103,mag:1.62}, // Shaula-ish
+  {id:172, ra:16.199,dec:-19.460,mag:2.30}, // Dschubba-ish
+
+  // Cygnus / Lyra / Aquila triangle
+  {id:180, ra:18.615,dec:38.783, mag:0.03}, // Vega
+  {id:181, ra:19.846,dec:8.868,  mag:0.77}, // Altair
+  {id:182, ra:20.690,dec:45.280, mag:1.25}, // Deneb-ish
+
+  // Extra bright-ish filler (handpicked/approx) to reach a denser map
+  {id:201, ra:1.628, dec:-57.236, mag:0.46},
+  {id:202, ra:3.405, dec:49.861,  mag:1.90},
+  {id:203, ra:9.220, dec:-69.717, mag:0.61},
+  {id:204, ra:12.443,dec:-63.099, mag:0.61},
+  {id:205, ra:17.560,dec:-37.103, mag:1.62},
+  {id:206, ra:22.137,dec:-46.960, mag:1.17},
+  {id:207, ra:23.079,dec:15.205,  mag:2.06},
+  {id:208, ra:0.139, dec:29.090,  mag:2.06},
+  {id:209, ra:2.065, dec:42.329,  mag:2.10},
+  {id:210, ra:6.399, dec:-52.695, mag:1.50},
+  {id:211, ra:8.375, dec:-47.337, mag:1.75},
+  {id:212, ra:9.459, dec:-8.658,  mag:1.98},
+  {id:213, ra:10.279,dec:23.417,  mag:2.23},
+  {id:214, ra:11.322,dec:-14.779, mag:2.00},
+  {id:215, ra:12.519,dec:-57.113, mag:1.33},
+  {id:216, ra:13.792,dec:49.313,  mag:2.90},
+  {id:217, ra:15.578,dec:26.714,  mag:2.23},
+  {id:218, ra:16.006,dec:-22.621, mag:2.80},
+  {id:219, ra:17.245,dec:14.390,  mag:2.35},
+  {id:220, ra:18.402,dec:-34.384, mag:2.60},
+  {id:221, ra:20.427,dec:-56.735, mag:2.70},
+  {id:222, ra:21.309,dec:62.585,  mag:2.45},
+  {id:223, ra:22.961,dec:-29.622, mag:2.00},
+  {id:224, ra:23.655,dec:77.632,  mag:2.02},
+];
+
+// De-duplicate ids (some anchors above reused). Keep first occurrence.
+const _seen = new Set();
+const STARS_UNIQ = STARS.filter(s => { if (_seen.has(s.id)) return false; _seen.add(s.id); return true; });
+
+// (A) 20-ish popular constellations / a compact but richer line set.
+// These lines are deliberately simple (good for engraving).
+const LINES = [
+  // Orion (belt + frame)
+  [132,133],[133,135],[134,132],[134,130],[130,133],[133,131],[131,136],
+  // Ursa Major (Big Dipper)
+  [101,102],[102,103],[103,104],[104,105],[105,106],[106,107],
+  // Cassiopeia
+  [121,122],[122,123],[123,120],[120,124],
+  // Gemini
+  [150,151],
+  // Leo (simple)
+  [160,162],[162,161],
+  // Scorpius (simple)
+  [172,170],[170,171],
+  // Summer Triangle (decorative)
+  [180,182],[182,181],[181,180],
+  // Little hint line: Dubhe -> Polaris (navigation feel)
+  [101,13],
+];
+
+// --- Validation
+function validateAndRender() {
+  let allValid = true;
+
+  const check = (id, checkId, validator) => {
+    const input = document.getElementById(id);
+    const checkbox = checkId ? document.getElementById(checkId) : { checked: true };
+
+    if (!checkbox.checked) {
+      input.classList.remove('missing');
+      input.classList.remove('valid');
+      return true;
+    }
+
+    const valid = validator(input.value);
+    setValidity(input, valid);
+    return valid;
+  };
+
+  // Title: required whenever enabled
+  if (!check('title', 'checkTitle', v => v.trim().length > 0)) allValid = false;
+
+  if (APP_MODE === 'date') {
+    // Date/time/location become valid ONLY after user input (touched)
+    if (!check('date', 'checkDate', v => v !== '' && document.getElementById('date').dataset.touched === '1')) allValid = false;
+    if (!check('time', 'checkTime', v => v !== '' && document.getElementById('time').dataset.touched === '1')) allValid = false;
+    if (!check('loc', 'checkLoc', v => v.trim().length > 1 && document.getElementById('loc').dataset.touched === '1')) allValid = false;
+  } else {
+    if (!check('customText', 'checkCustomText', v => v.trim().length > 0 && document.getElementById('customText').dataset.touched === '1')) allValid = false;
+  }
+
+  // Font/Mount always mandatory
+  if (!check('font', null, v => v !== '')) allValid = false;
+  if (!check('mount', null, v => v !== '')) allValid = false;
+
+  const btn = document.getElementById('dlBtn');
+  if (allValid) {
+    btn.disabled = false;
+    btn.innerText = '⇩ PNG HERUNTERLADEN';
+    btn.style.background = 'linear-gradient(135deg, var(--gold), #b39224)';
+  } else {
+    btn.disabled = true;
+    btn.innerText = 'Bitte rote Felder ausfüllen';
+    btn.style.background = '#444';
+  }
+
+  render();
+}
+
+// --- Compass removed (clean layout: nothing touches the typography)
+
+// --- Main render
+function render() {
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, S, S);
+
+  let fontVal = document.getElementById('font').value;
+  if (!fontVal) fontVal = "'Montserrat', sans-serif";
+
+  const showTitle = document.getElementById('checkTitle').checked;
+  const showDate  = document.getElementById('checkDate').checked;
+  const showTime  = document.getElementById('checkTime').checked;
+  const showLoc   = document.getElementById('checkLoc').checked;
+  const showCustom= document.getElementById('checkCustomText').checked;
+
+  let title = (document.getElementById('title').value || '').trim();
+  const timeStr = document.getElementById('time').value;
+
+  let isTitlePh = false, isDatePh = false, isLocPh = false;
+  if (showTitle && !title) { title = '[ Name eingeben ]'; isTitlePh = true; }
+
+  let bottomLine1 = '', bottomLine2 = '', LST = 0, focusDec = 0;
+
+  if (APP_MODE === 'date') {
+    const dVal = document.getElementById('date').value;
+    const calcTime = (showTime && timeStr) ? timeStr : '12:00';
+    const dObj = dVal ? new Date(dVal + 'T' + calcTime) : new Date();
+
+    // Approx sidereal time
+    const jd = (dObj.getTime() / 86400000) + 2440587.5;
+    const t = 18.697374558 + 24.06570982441908 * (jd - 2451545.0);
+    LST = (t + GEO.lon / 15.0) % 24;
+    focusDec = GEO.lat;
+
+    if (showDate) {
+      if (dVal) bottomLine1 = dObj.toLocaleDateString('de-DE', { year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+      else { bottomLine1 = '[ DATUM EINGEBEN ]'; isDatePh = true; }
+    }
+
+    let locPart = '';
+    let timePart = '';
+
+    if (showLoc) {
+      const val = (document.getElementById('loc').value || '').trim();
+      if (val.length > 1) locPart = (GEO.name || val).toUpperCase();
+      else { locPart = '[ ORT EINGEBEN ]'; isLocPh = true; }
+    }
+
+    if (showTime) timePart = timeStr ? (timeStr + ' UHR') : '[ ZEIT ]';
+
+    if (locPart && timePart) bottomLine2 = `${locPart} • ${timePart}`;
+    else bottomLine2 = (locPart + timePart).trim();
+
+  } else {
+    const sign = document.getElementById('zodiac').value;
+    LST = ZODIAC_CENTER[sign].ra;
+    focusDec = ZODIAC_CENTER[sign].dec;
+    bottomLine1 = document.getElementById('zodiac').options[document.getElementById('zodiac').selectedIndex].text.split('(')[0].toUpperCase().trim();
+
+    if (showCustom) {
+      let cText = (document.getElementById('customText').value || '').toUpperCase();
+      if (!cText) { cText = '[ TEXT EINGEBEN ]'; isLocPh = true; }
+      bottomLine2 = cText;
+    }
+  }
+
+  // MAP
+  const radius = 7 * PX_CM;
+  const cx = S / 2, cy = S / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.clip();
+
+  // background field
+  ctx.fillStyle = 'white';
+  for (const bg of STATIC_BG_STARS) {
+    ctx.fillRect(cx + bg.x, cy + bg.y, bg.size, bg.size);
+  }
+
+  // stars (B: circles only)
+  const starPos = {};
+  for (const s of STARS_UNIQ) {
+    const ha = (LST - s.ra) * 15 * (Math.PI / 180);
+    const dec = s.dec * (Math.PI / 180);
+    const lat = focusDec * (Math.PI / 180);
+
+    const sinAlt = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(ha);
+    const alt = Math.asin(sinAlt);
+
+    if (alt > 0) {
+      const r = radius * Math.tan((Math.PI / 2 - alt) / 2);
+      let az = Math.acos((Math.sin(dec) - sinAlt * Math.sin(lat)) / (Math.cos(alt) * Math.cos(lat)));
+      if (Math.sin(ha) > 0) az = 2 * Math.PI - az;
+
+      const px = cx + r * Math.sin(az);
+      const py = cy - r * Math.cos(az);
+      starPos[s.id] = { x: px, y: py };
+
+      // size mapping: brighter (lower mag) => bigger
+      const m = Math.min(3.2, Math.max(-1.6, s.mag));
+      const tMag = (3.2 - m) / (3.2 + 1.6); // 0..1
+      const sz = LASER.STAR_MIN_R + (LASER.STAR_MAX_R - LASER.STAR_MIN_R) * Math.pow(tMag, 1.6);
+
+      ctx.beginPath();
+      ctx.arc(px, py, sz, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // constellation lines (B: exact thickness)
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = LASER.LINE_WIDTH;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (const [a, b] of LINES) {
+    if (starPos[a] && starPos[b]) {
+      ctx.moveTo(starPos[a].x, starPos[a].y);
+      ctx.lineTo(starPos[b].x, starPos[b].y);
+    }
+  }
+  ctx.stroke();
+
+  ctx.restore();
+  // rings (clean + a bit more premium)
+  ctx.strokeStyle = 'white';
+  ctx.lineCap = 'round';
+
+  // inner ring: slightly thinner
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // outer ring: slimmer + a touch closer (looks calmer with typography)
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 18, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // compass removed (clean layout)
+
+  // TEXT
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+
+  const topY = 2.0 * PX_CM;
+
+  if (showTitle) {
+    ctx.font = `110px ${fontVal}`;
+    if (isTitlePh) ctx.fillStyle = '#666';
+    const tracking = fontVal.includes('Montserrat') ? 12 : 8;
+    drawTextWithTracking(ctx, title, S / 2, topY, tracking);
+    ctx.fillStyle = 'white';
+  }
+
+  const bottomY = S - (1.0 * PX_CM);
+
+  // Line 2
+  ctx.font = `300 40px ${fontVal}`;
+  if (isLocPh) ctx.fillStyle = '#666';
+  drawTextWithTracking(ctx, bottomLine2, S / 2, bottomY, 4);
+  ctx.fillStyle = 'white';
+
+  // Line 1
+  ctx.font = `700 75px ${fontVal}`;
+  if (isDatePh) ctx.fillStyle = '#666';
+  drawTextWithTracking(ctx, bottomLine1, S / 2, bottomY - 90, 2);
+  ctx.fillStyle = 'white';
+
+  // wall mount holes
+  if (document.getElementById('mount').value === 'wall') {
+    const m = 0.10 * S;
+    const radiusPx = 29;
+    ctx.fillStyle = 'black';
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(m, m, radiusPx, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(S - m, m, radiusPx, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+
+  // BINARIZE (last step)
+  const id = ctx.getImageData(0, 0, S, S);
+  for (let i = 0; i < id.data.length; i += 4) {
+    const v = (id.data[i] + id.data[i + 1] + id.data[i + 2]) / 3 > LASER.THRESHOLD ? 255 : 0;
+    id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function download() {
+  const l = document.createElement('a');
+  l.download = `SCHIEFER_${APP_MODE}.png`;
+  l.href = document.getElementById('cvs').toDataURL();
+  l.click();
+}
+
+initTouched();
+validateAndRender();
+</script>
+</body>
+</html>
