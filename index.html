@@ -44,7 +44,19 @@
     .group { margin-bottom:12px; }
     label { display:block; font-size:0.6rem; color:var(--text-light); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.1em; font-weight:600; }
     .input-row { display:flex; align-items:stretch; gap:6px; }
-    input:not([type="checkbox"]),select { flex-grow:1; padding:10px 12px; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-light); border-left:3px solid var(--border-light); border-radius:8px; font-size:0.85rem; transition:all .2s; font-family:inherit; }
+
+    input:not([type="checkbox"]),select {
+      flex-grow:1;
+      padding:10px 12px;
+      background:var(--bg-light);
+      color:var(--text-dark);
+      border:1px solid var(--border-light);
+      border-left:3px solid var(--border-light);
+      border-radius:8px;
+      font-size:0.9rem;
+      transition:all .2s;
+      font-family:inherit;
+    }
     select option { background:var(--card-bg); color:var(--text-dark); }
     .toggle-check { width:22px; height:22px; min-width:22px; margin:0; cursor:pointer; accent-color:var(--copper); border:1px solid var(--border-light); background:var(--bg-cream); border-radius:6px; }
     input:disabled,select:disabled { opacity:.35; background:var(--bg-warm); border-color:transparent; color:var(--text-light); cursor:not-allowed; }
@@ -133,7 +145,7 @@
       .specs-box{padding:6px;font-size:0.72rem;margin-bottom:10px}
       .group{margin-bottom:8px}
       label{font-size:0.55rem;margin-bottom:2px}
-      input:not([type="checkbox"]),select{padding:8px 9px;font-size:0.8rem}
+      input:not([type="checkbox"]),select{padding:8px 9px;font-size:0.85rem}
       .toggle-check{width:20px;height:20px;min-width:20px}
       .info-box{font-size:0.6rem;padding:6px 8px}
       .chip{padding:4px 9px;font-size:0.63rem}
@@ -192,7 +204,7 @@
     <div class="group">
       <label>3. Datum</label>
       <div class="input-row">
-        <input type="date" id="date" class="missing" oninput="markTouched(this.id);validateAndRender()">
+        <input type="date" id="date" class="missing" oninput="markTouched(this.id);validateAndRender()" onchange="markTouched(this.id);validateAndRender()">
         <input type="checkbox" id="checkDate" class="toggle-check" checked onchange="toggleField('date','checkDate')">
       </div>
     </div>
@@ -200,7 +212,7 @@
     <div class="group">
       <label>4. Uhrzeit (Optional)</label>
       <div class="input-row">
-        <input type="time" id="time" value="22:00" disabled oninput="markTouched(this.id);validateAndRender()">
+        <input type="time" id="time" value="22:00" disabled oninput="markTouched(this.id);validateAndRender()" onchange="markTouched(this.id);validateAndRender()">
         <input type="checkbox" id="checkTime" class="toggle-check" onchange="toggleField('time','checkTime')">
       </div>
     </div>
@@ -296,7 +308,7 @@
   let timer;
 
   // ========================
-  // TOUCHED-STATE (Fix)
+  // TOUCHED-STATE
   // ========================
   const TOUCH_IDS = ['title','date','time','loc'];
   function initTouched(){
@@ -314,7 +326,6 @@
   window.onload = function(){
     const dateEl = document.getElementById('date');
     dateEl.valueAsDate = new Date();
-    // wichtig, sonst bleibt das Datum „missing“
     dateEl.dataset.touched = '1';
 
     // Default Berlin (kannst du später per Browser-Geolocation ersetzen)
@@ -361,8 +372,24 @@
   function toggleField(id, cid){
     const c = document.getElementById(cid).checked;
     const el = document.getElementById(id);
+
+    // Enable/disable
     el.disabled = !c;
+
+    // Reset validity styles
     el.classList.remove('valid','missing');
+
+    // Speziallogik: Uhrzeit soll nach Aktivieren zunächst ROT sein, bis der User sie eingibt
+    if (id === 'time') {
+      if (c) {
+        el.value = '';               // bewusst leer starten
+        el.dataset.touched = '0';    // noch nicht „eingegeben"
+        setValidity(el, false);      // direkt rot
+      } else {
+        el.dataset.touched = '0';
+      }
+    }
+
     if (id === 'loc') document.getElementById('locStatus').innerText = c ? 'Pflichtfeld' : '';
     validateAndRender();
   }
@@ -382,18 +409,39 @@
       return v;
     };
 
+    // Pflichtfelder
     if (!chk('title','checkTitle', v => v.trim().length > 0)) ok = false;
     if (!chk('date','checkDate', v => v !== '')) ok = false;
 
-    if (document.getElementById('checkTime').checked && !document.getElementById('time').value) ok = false;
-    if (document.getElementById('checkLoc').checked && document.getElementById('loc').value.trim().length < 2) ok = false;
+    // Optional: Uhrzeit
+    const timeCb = document.getElementById('checkTime');
+    const timeEl = document.getElementById('time');
+    if (timeCb.checked) {
+      // Soll erst grün werden, wenn der User eine vollständige Uhrzeit eingegeben hat
+      const okTime = (timeEl.dataset.touched === '1') && /^\d{2}:\d{2}$/.test((timeEl.value || '').trim());
+      setValidity(timeEl, okTime);
+      if (!okTime) ok = false;
+    } else {
+      timeEl.classList.remove('missing','valid');
+    }
+
+    // Pflicht (wenn aktiviert): Ort
+    const locCb = document.getElementById('checkLoc');
+    const locEl = document.getElementById('loc');
+    if (locCb.checked) {
+      const okLoc = (locEl.value || '').trim().length >= 2;
+      setValidity(locEl, okLoc);
+      if (!okLoc) ok = false;
+    } else {
+      locEl.classList.remove('missing','valid');
+    }
 
     document.getElementById('waBtn').disabled = !ok;
     render();
   }
 
   // ========================
-  // WhatsApp + Upload (Fix)
+  // WhatsApp + Upload
   // ========================
   async function sendWhatsApp(){
     const btn = document.getElementById('waBtn');
@@ -411,7 +459,8 @@
     const date = document.getElementById('date').value;
 
     const timeCheck = document.getElementById('checkTime').checked;
-    const timeVal = timeCheck ? (document.getElementById('time').value || 'Nicht angegeben') : 'Nicht angegeben';
+    let timeVal = timeCheck ? (document.getElementById('time').value || 'Nicht angegeben') : 'Nicht angegeben';
+    if (timeCheck && /^\d{2}:\d{2}$/.test(timeVal)) timeVal = timeVal + ' Uhr';
 
     const locCheck = document.getElementById('checkLoc').checked;
     const locVal = locCheck ? (document.getElementById('loc').value.trim() || 'Nicht angegeben') : 'Standard (Berlin)';
@@ -490,8 +539,8 @@ Bitte meldet euch für die Details!`;
     try {
       const r = await fetch('https://photon.komoot.io/api/?limit=6&lang=de&q=' + encodeURIComponent(q));
       const j = await r.json();
-      SUGGESTIONS = j.features.map(f => {
-        const p = f.properties;
+      SUGGESTIONS = (j.features || []).map(f => {
+        const p = f.properties || {};
         return {
           label: [p.name, p.city, p.country].filter(Boolean).join(', '),
           lat: f.geometry.coordinates[1],
@@ -531,15 +580,8 @@ Bitte meldet euch für die Details!`;
   }
 
   // ========================
-  // Star Data
+  // DRAW HELPERS
   // ========================
-  function getMoonPhase(d){
-    const lp = 2551443;
-    const nm = new Date(1970,0,7,20,35,0).getTime();
-    const p = ((d.getTime() - nm) % lp) / lp;
-    return p < 0 ? p + 1 : p;
-  }
-
   function drawTT(c, text, x, y, tr){
     if (!text) return;
     const ch = Array.from(text);
@@ -553,6 +595,9 @@ Bitte meldet euch für die Details!`;
     }
   }
 
+  // ========================
+  // STATIC STAR BACKGROUND
+  // ========================
   let STATIC_BG = [];
   function initBG(size){
     STATIC_BG = [];
@@ -571,6 +616,9 @@ Bitte meldet euch für die Details!`;
   }
   initBG(S);
 
+  // ========================
+  // STAR DATA
+  // ========================
   const STARS=[
     {id:1,ra:6.75,dec:-16.7,mag:-1.46,n:"SIRIUS"},{id:2,ra:14.26,dec:19.1,mag:-0.05,n:"ARKTUR"},{id:3,ra:5.24,dec:-8.2,mag:0.18,n:"RIGEL"},{id:4,ra:5.92,dec:7.4,mag:0.45,n:"BETEIGEUZE"},{id:5,ra:18.62,dec:38.8,mag:0.03,n:"WEGA"},{id:6,ra:7.66,dec:5.2,mag:0.38,n:"PROKYON"},{id:7,ra:5.28,dec:46.0,mag:0.08,n:"CAPELLA"},{id:8,ra:13.42,dec:-11.2,mag:1.04,n:"SPICA"},{id:9,ra:16.49,dec:-26.4,mag:1.06,n:"ANTARES"},{id:10,ra:19.85,dec:8.9,mag:0.77,n:"ALTAIR"},{id:11,ra:20.69,dec:45.3,mag:1.25,n:"DENEB"},{id:12,ra:4.60,dec:16.5,mag:0.86,n:"ALDEBARAN"},{id:13,ra:2.53,dec:89.3,mag:1.98,n:"POLARIS"},{id:14,ra:10.14,dec:11.9,mag:1.35,n:"REGULUS"},{id:15,ra:7.58,dec:31.9,mag:1.58,n:"CASTOR"},{id:16,ra:7.76,dec:28.0,mag:1.14,n:"POLLUX"},
     {id:101,ra:11.06,dec:61.8,mag:1.8},{id:102,ra:11.03,dec:56.4,mag:2.4},{id:103,ra:11.90,dec:53.7,mag:2.4},{id:104,ra:12.26,dec:57.0,mag:2.4},{id:105,ra:12.90,dec:56.0,mag:1.8},{id:106,ra:13.40,dec:54.9,mag:2.2},{id:107,ra:13.79,dec:49.3,mag:1.9},
@@ -620,8 +668,8 @@ Bitte meldet euch für die Details!`;
 
     // Sidereal time approx
     const jd = (dO.getTime()/86400000) + 2440587.5;
-    const t = 18.697374558 + 24.06570982441908 * (jd - 2451545.0);
-    const LST = (t + GEO.lon/15.0) % 24;
+    const tt = 18.697374558 + 24.06570982441908 * (jd - 2451545.0);
+    const LST = (tt + GEO.lon/15.0) % 24;
     const fDec = GEO.lat;
 
     if (sD) l1 = dO.toLocaleDateString('de-DE',{year:'numeric',month:'long',day:'numeric'});
@@ -634,8 +682,8 @@ Bitte meldet euch für die Details!`;
 
     let timeT = '';
     if (sTi) {
-      let tt = document.getElementById('time').value;
-      if (tt) timeT = tt + ' Uhr';
+      let tIn = document.getElementById('time').value;
+      if (tIn) timeT = tIn + ' Uhr';
     }
 
     if (locT && timeT) l2 = locT + ' • ' + timeT;
@@ -772,39 +820,85 @@ Bitte meldet euch für die Details!`;
 
     const bY = size - (1.0*px);
     if (l2) {
-      c.font = '300 ' + Math.round(40*sc) + 'px Montserrat';
+      // Ort/Zeit bewusst kleiner als Datum
+      c.font = '300 ' + Math.round(50*sc) + 'px Montserrat';
       drawTT(c, l2, size/2, bY, 2*sc);
-      c.font = '700 ' + Math.round(75*sc) + 'px Montserrat';
-      drawTT(c, l1, size/2, bY - 90*sc, 2*sc);
+      c.font = '700 ' + Math.round(70*sc) + 'px Montserrat';
+      drawTT(c, l1, size/2, bY - 84*sc, 2*sc);
     } else {
-      c.font = '700 ' + Math.round(75*sc) + 'px Montserrat';
-      drawTT(c, l1, size/2, bY - 45*sc, 2*sc);
+      c.font = '700 ' + Math.round(70*sc) + 'px Montserrat';
+      drawTT(c, l1, size/2, bY - 42*sc, 2*sc);
     }
 
-    // Moon icon
-    if (sD) {
-      const p = getMoonPhase(dO);
-      const dw = c.measureText(l1).width;
-      const mx = size/2 + dw/2 + 70*sc;
-      const my = l2 ? (bY - 115*sc) : (bY - 70*sc);
-
-      c.beginPath();
-      c.arc(mx,my,22*sc,0,Math.PI*2);
-      c.lineWidth=2*sc;
-      c.strokeStyle='white';
-      c.stroke();
-
-      if (p>0.05 && p<0.95) {
-        c.beginPath();
-        c.arc(mx,my,22*sc,-Math.PI/2,Math.PI/2,p<0.5);
-        c.fill();
-      }
-    }
+    // Mond entfernt – bewusst reduziert.
   }
 
   function render(){
     if (!ctx) return;
     renderToCtx(ctx, S, false);
+  }
+
+  // ========================
+  // Minimal Tests (optional)
+  // Aktivieren: ?test=1
+  // ========================
+  function runTests(){
+    console.group('Get Your Boxx – Tests');
+
+    console.assert(typeof renderToCtx === 'function', 'renderToCtx muss existieren');
+    console.assert(typeof validateAndRender === 'function', 'validateAndRender muss existieren');
+
+    // Test 1: Pflichtfelder -> Button disabled
+    const titleEl = document.getElementById('title');
+    const dateEl = document.getElementById('date');
+    const waBtn = document.getElementById('waBtn');
+
+    titleEl.value = '';
+    dateEl.value = '';
+    validateAndRender();
+    console.assert(waBtn.disabled === true, 'Button muss disabled sein, wenn Pflichtfelder leer sind');
+
+    // Test 2: Pflichtfelder gesetzt -> Button enabled (ohne Ort/Uhrzeit)
+    titleEl.value = 'Test';
+    dateEl.value = '2026-02-08';
+    validateAndRender();
+    console.assert(waBtn.disabled === false, 'Button muss enabled sein, wenn Titel & Datum gesetzt sind');
+
+    // Test 3: Uhrzeit aktiviert -> Button disabled bis Uhrzeit vollständig gesetzt
+    document.getElementById('checkTime').checked = true;
+    toggleField('time','checkTime');
+    validateAndRender();
+    console.assert(waBtn.disabled === true, 'Button muss disabled sein, wenn Uhrzeit aktiviert aber leer ist');
+
+    const timeEl = document.getElementById('time');
+    timeEl.value = '12:34';
+    timeEl.dataset.touched = '1';
+    validateAndRender();
+    console.assert(waBtn.disabled === false, 'Button muss enabled sein, wenn Uhrzeit vollständig gesetzt ist');
+
+    document.getElementById('checkTime').checked = false;
+    toggleField('time','checkTime');
+
+    // Test 4: Ort-Pflicht aktiviert -> Button disabled bis Ort gesetzt
+    document.getElementById('checkLoc').checked = true;
+    toggleField('loc','checkLoc');
+    document.getElementById('loc').value = '';
+    validateAndRender();
+    console.assert(waBtn.disabled === true, 'Button muss disabled sein, wenn Ort aktiviert aber leer ist');
+
+    document.getElementById('loc').value = 'Berlin';
+    validateAndRender();
+    console.assert(waBtn.disabled === false, 'Button muss enabled sein, wenn Ort gesetzt ist');
+
+    // Cleanup
+    document.getElementById('checkLoc').checked = false;
+    toggleField('loc','checkLoc');
+
+    console.groupEnd();
+  }
+
+  if (new URLSearchParams(location.search).has('test')) {
+    runTests();
   }
 </script>
 </body>
