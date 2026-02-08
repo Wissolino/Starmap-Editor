@@ -2,1114 +2,810 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>SlateStar V32 - Final Validation + Clean Ring</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond:wght@400;700&family=Montserrat:wght@300;500;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Get Your Boxx - Sternenkarte Konfigurator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond:wght@400;700&family=Montserrat:wght@300;500;800&family=Playfair+Display:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#0d0d0e; --panel:#1a1a1c; --gold:#d4af37; --text:#ffffff; --error:#ff4444; --success:#4caf50; }
-    body { font-family:'Montserrat',sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; padding:20px; margin:0; }
-    .app { display:grid; grid-template-columns:380px 1fr; gap:40px; width:100%; max-width:1400px; }
-    .sidebar { background:var(--panel); padding:25px; border-radius:12px; border:1px solid #333; height:fit-content; }
-    h2 { color:var(--gold); text-transform:uppercase; letter-spacing:2px; border-bottom:1px solid #333; padding-bottom:15px; margin-top:0; font-weight:300; }
-
-    .mode-switch { display:flex; gap:0; margin-bottom:25px; border:1px solid #444; border-radius:6px; overflow:hidden; }
-    .mode-btn { flex:1; padding:15px; background:#252629; border:none; color:#888; cursor:pointer; text-transform:uppercase; font-size:.8rem; font-weight:bold; transition:.2s; }
-    .mode-btn.active { background:var(--gold); color:#111; }
-
-    .group { margin-bottom:15px; display:none; }
-    .group.visible { display:block; }
-
-    label { display:block; font-size:.7rem; color:#aaa; text-transform:uppercase; margin-bottom:5px; letter-spacing:1px; font-weight:600; }
-
-    .input-row { display:flex; align-items:stretch; gap:8px; }
-
-    input:not([type="checkbox"]), select {
-      flex-grow:1;
-      padding:12px;
-      background:#252629; color:#fff;
-      border:1px solid #444;
-      border-left:5px solid #444;
-      border-radius:4px; box-sizing:border-box; font-size:1rem;
-      transition:all .2s;
+    :root {
+      --bg-light: #f5f3f0;
+      --bg-cream: #eae6e0;
+      --bg-warm: #e0dbd4;
+      --card-bg: #ffffff;
+      --copper: #E89F02;
+      --copper-dark: #c98a02;
+      --copper-light: #f5b52a;
+      --text-dark: #1a1a1a;
+      --text-medium: #4a4a4a;
+      --text-light: #7a7a7a;
+      --border-light: rgba(0,0,0,0.08);
+      --shadow-soft: 0 4px 20px rgba(0,0,0,0.08);
+      --shadow-medium: 0 8px 40px rgba(0,0,0,0.12);
+      --error: #d32f2f;
+      --success: #388e3c;
     }
-    select option { background-color:#252629; color:#fff; padding:10px; }
+    * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+    body { font-family:'Outfit',sans-serif; background:var(--bg-light); color:var(--text-dark); display:flex; justify-content:center; padding:12px; min-height:100vh; -webkit-font-smoothing:antialiased; }
+    body::before { content:''; position:fixed; top:0; left:0; width:100%; height:100%; background-image:radial-gradient(circle at 25% 25%,rgba(232,159,2,0.03) 0%,transparent 50%),radial-gradient(circle at 75% 75%,rgba(232,159,2,0.02) 0%,transparent 50%); pointer-events:none; z-index:0; }
 
-    .toggle-check {
-      width:24px;
-      height:24px;
-      margin:0;
-      cursor:pointer;
-      accent-color:var(--gold);
-      border:1px solid #444;
-      background:#333;
-      border-radius:4px;
+    .app { position:relative; z-index:2; display:grid; grid-template-columns:340px 1fr; gap:30px; width:100%; max-width:1400px; }
+    .sidebar { background:var(--card-bg); padding:22px; border-radius:20px; border:1px solid var(--border-light); height:fit-content; box-shadow:var(--shadow-soft); }
+
+    .brand-header { text-align:center; border-bottom:1px solid var(--border-light); padding-bottom:14px; margin-bottom:14px; }
+    .brand-name { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--copper); letter-spacing:0.08em; font-weight:600; line-height:1; }
+    .brand-tagline { font-family:'Outfit',sans-serif; font-size:0.65rem; color:var(--text-light); text-transform:uppercase; letter-spacing:0.2em; margin-top:4px; }
+    .logo-mark { width:50px; height:2px; background:linear-gradient(90deg,transparent,var(--copper),transparent); margin:10px auto 0; border-radius:2px; }
+
+    .intro { font-size:0.78rem; color:var(--text-light); line-height:1.5; margin:0 0 14px; font-weight:400; text-align:center; }
+    .specs-box { background:rgba(232,159,2,0.08); border:1px solid rgba(232,159,2,0.25); color:var(--copper-dark); padding:8px; text-align:center; border-radius:8px; margin-bottom:16px; font-size:0.78rem; font-weight:600; letter-spacing:0.03em; }
+
+    .info-box { background:var(--bg-light); padding:8px 10px; border-radius:6px; border-left:3px solid var(--copper); margin-top:5px; font-size:0.65rem; color:var(--text-light); line-height:1.35; }
+    .info-box strong { color:var(--text-dark); }
+
+    .group { margin-bottom:12px; }
+    label { display:block; font-size:0.6rem; color:var(--text-light); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.1em; font-weight:600; }
+    .input-row { display:flex; align-items:stretch; gap:6px; }
+    input:not([type="checkbox"]),select { flex-grow:1; padding:10px 12px; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-light); border-left:3px solid var(--border-light); border-radius:8px; font-size:0.85rem; transition:all .2s; font-family:inherit; }
+    select option { background:var(--card-bg); color:var(--text-dark); }
+    .toggle-check { width:22px; height:22px; min-width:22px; margin:0; cursor:pointer; accent-color:var(--copper); border:1px solid var(--border-light); background:var(--bg-cream); border-radius:6px; }
+    input:disabled,select:disabled { opacity:.35; background:var(--bg-warm); border-color:transparent; color:var(--text-light); cursor:not-allowed; }
+    .missing { border-color:var(--error)!important; border-left-color:var(--error)!important; background:rgba(211,47,47,0.04)!important; }
+    .valid { border-color:var(--success)!important; border-left-color:var(--success)!important; background:rgba(56,142,60,0.04)!important; }
+    input:focus:not(:disabled),select:focus:not(:disabled) { outline:none; border-color:var(--copper); box-shadow:0 0 0 3px rgba(232,159,2,0.1); }
+    .status { font-size:0.6rem; color:var(--text-light); margin-top:2px; text-align:right; min-height:12px; }
+
+    /* CHIPS */
+    .chips { display:flex; flex-wrap:wrap; gap:5px; }
+    .chip { padding:6px 11px; background:var(--bg-light); border:1px solid var(--border-light); border-radius:20px; font-size:0.7rem; color:var(--text-medium); cursor:pointer; transition:all .2s; white-space:nowrap; }
+    .chip:hover { border-color:var(--copper); color:var(--copper); }
+    .chip.active { border-color:var(--copper); color:var(--copper); background:rgba(232,159,2,0.08); }
+    .chip-cat { font-size:0.55rem; color:var(--text-light); text-transform:uppercase; letter-spacing:0.1em; width:100%; margin-top:4px; font-weight:500; }
+    .chip-cat:first-child { margin-top:0; }
+
+    /* CTA */
+    .cta-area { margin-top:14px; }
+    .btn-row { display:flex; align-items:stretch; gap:10px; }
+    .price-tag { display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(232,159,2,0.08); border:1px solid rgba(232,159,2,0.25); border-radius:12px; padding:8px 14px; min-width:72px; }
+    .price-tag .amount { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:600; color:var(--copper); line-height:1; }
+    .price-tag .price-sub { font-size:0.48rem; color:var(--text-light); text-transform:uppercase; letter-spacing:0.03em; margin-top:2px; line-height:1.2; text-align:center; }
+    .btn-wa { flex:1; padding:14px; background:#25D366; border:none; border-radius:12px; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; transition:all .3s; cursor:pointer; box-shadow:0 6px 20px rgba(37,211,102,0.3); font-family:inherit; }
+    .btn-wa:disabled { background:var(--bg-warm); color:var(--text-light); opacity:0.6; cursor:not-allowed; box-shadow:none; }
+    .btn-wa:hover:not(:disabled) { background:#1fb855; transform:translateY(-2px); box-shadow:0 10px 30px rgba(37,211,102,0.4); }
+    .btn-wa:active:not(:disabled) { transform:translateY(0); }
+    .cta-text { display:flex; flex-direction:column; line-height:1.2; text-align:left; }
+    .cta-text strong { font-size:0.85rem; font-weight:600; }
+    .cta-text small { font-size:0.65rem; opacity:0.9; font-weight:400; }
+    .spinner { width:22px; height:22px; animation:spin 1s linear infinite; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    /* TRUST */
+    .trust-bar { display:flex; justify-content:center; gap:16px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border-light); }
+    .trust-item { font-size:0.55rem; color:var(--text-light); text-align:center; line-height:1.3; }
+    .trust-item span { display:block; font-size:0.8rem; margin-bottom:1px; }
+
+    /* PREVIEW + SLATE */
+    .preview { display:flex; flex-direction:column; align-items:center; }
+    .slate { position:relative; width:620px; height:620px; overflow:hidden;
+      box-shadow:0 8px 25px rgba(0,0,0,0.25),0 3px 10px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.1); border-radius:4px; }
+    .slate-base { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;
+      background:
+        repeating-linear-gradient(178deg,#1a1c1e 0px,#1f2123 3px,#1c1e20 8px,#212325 12px,#1d1f21 18px,#202224 22px,#1b1d1f 28px,#1e2022 35px),
+        linear-gradient(165deg,transparent 0%,rgba(30,32,34,0.3) 8%,transparent 10%,transparent 25%,rgba(25,27,29,0.25) 27%,transparent 29%,transparent 50%,rgba(35,37,39,0.2) 52%,transparent 54%,transparent 70%,rgba(22,24,26,0.25) 72%,transparent 74%,transparent 90%,rgba(28,30,32,0.2) 92%,transparent 94%),
+        linear-gradient(135deg,#1a1c1e 0%,#1e2022 20%,#191b1d 40%,#202224 60%,#1c1e20 80%,#1d1f21 100%); }
+    .slate-texture { position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; mix-blend-mode:soft-light; opacity:0.2;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='slate'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015 0.08' numOctaves='5' seed='15' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23slate)'/%3E%3C/svg%3E"); }
+    .slate-grain { position:absolute; top:0; left:0; width:100%; height:100%; z-index:3; mix-blend-mode:overlay; opacity:0.08;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E"); }
+    .slate-layers { position:absolute; top:0; left:0; width:100%; height:100%; z-index:4;
+      background:
+        radial-gradient(ellipse 80% 20% at 30% 25%,rgba(255,255,255,0.03) 0%,transparent 50%),
+        radial-gradient(ellipse 60% 15% at 70% 60%,rgba(255,255,255,0.02) 0%,transparent 50%),
+        radial-gradient(ellipse 90% 25% at 50% 80%,rgba(255,255,255,0.025) 0%,transparent 50%),
+        repeating-linear-gradient(182deg,transparent 0px,transparent 6px,rgba(255,255,255,0.012) 7px,transparent 8px,transparent 15px,rgba(0,0,0,0.03) 16px,transparent 17px,transparent 25px); }
+    .slate-edge { position:absolute; top:0; left:0; width:100%; height:100%; z-index:6; pointer-events:none;
+      background:linear-gradient(135deg,rgba(255,255,255,0.03) 0%,transparent 30%,transparent 70%,rgba(0,0,0,0.08) 100%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.03); }
+    .slate-border { position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; pointer-events:none;
+      box-shadow:inset 0 0 10px 3px rgb(20,22,24); }
+    .slate canvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:7; mix-blend-mode:screen; }
+
+    /* REVIEWS */
+    .reviews { display:flex; gap:12px; margin-top:20px; max-width:620px; width:100%; }
+    .testimonial { flex:1; background:var(--card-bg); border-radius:12px; padding:14px 14px; box-shadow:var(--shadow-soft); }
+    .testimonial .stars { color:#f5a623; font-size:0.75rem; letter-spacing:2px; margin-bottom:4px; }
+    .testimonial .quote { font-size:0.72rem; color:var(--text-medium); font-style:italic; line-height:1.4; margin-bottom:5px; }
+    .testimonial .author { font-size:0.58rem; color:var(--text-light); font-weight:500; }
+
+    /* LOC MENU */
+    .loc-menu { position:absolute; left:0; right:0; top:calc(100% + 4px); background:var(--card-bg); border:1px solid var(--border-light); border-radius:10px; z-index:50; max-height:200px; overflow-y:auto; -webkit-overflow-scrolling:touch; box-shadow:var(--shadow-medium); }
+    .loc-item { padding:10px 12px; cursor:pointer; font-size:.82rem; color:var(--text-medium); border-bottom:1px solid var(--border-light); }
+    .loc-item:hover,.loc-item:active { background:var(--bg-cream); }
+
+    /* MOBILE */
+    @media(max-width:860px){
+      body{padding:0;padding-bottom:76px}
+      .app{grid-template-columns:1fr;gap:0;max-width:100%}
+      .sidebar{order:1;border-radius:0 0 20px 20px;border:none;border-bottom:1px solid var(--border-light);padding:16px 14px 20px;box-shadow:none}
+      .preview{order:2;padding:16px 10px 20px}
+      .slate{width:100%;max-width:400px;height:auto;aspect-ratio:1;box-shadow:0 15px 40px rgba(0,0,0,.3)}
+      .brand-header{padding-bottom:10px;margin-bottom:10px}
+      .brand-name{font-size:1.3rem}
+      .intro{font-size:0.72rem;margin-bottom:10px}
+      .specs-box{padding:6px;font-size:0.72rem;margin-bottom:10px}
+      .group{margin-bottom:8px}
+      label{font-size:0.55rem;margin-bottom:2px}
+      input:not([type="checkbox"]),select{padding:8px 9px;font-size:0.8rem}
+      .toggle-check{width:20px;height:20px;min-width:20px}
+      .info-box{font-size:0.6rem;padding:6px 8px}
+      .chip{padding:4px 9px;font-size:0.63rem}
+      .chip-cat{font-size:0.5rem}
+      .cta-area{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--card-bg);border-top:1px solid var(--border-light);padding:10px 14px;box-shadow:0 -4px 20px rgba(0,0,0,0.08)}
+      .trust-bar{display:none}
+      .reviews{flex-direction:column;gap:8px;padding:0 10px;max-width:400px}
+      .loc-menu{max-height:160px}
+      .loc-item{padding:10px;font-size:0.8rem}
     }
-
-    input:disabled, select:disabled {
-      opacity:.3;
-      background:#151515;
-      border-color:#333;
-      color:#555;
-      cursor:not-allowed;
+    @media(max-width:380px){
+      .sidebar{padding:12px 10px 16px}
+      .brand-name{font-size:1.15rem}
+      input:not([type="checkbox"]),select{padding:7px 8px;font-size:0.78rem}
+      .group{margin-bottom:7px}
+      .chip{padding:3px 7px;font-size:0.6rem}
     }
-
-    .missing { border-color:var(--error) !important; border-left-color:var(--error) !important; background:rgba(255,68,68,.1) !important; }
-    .valid { border-color:var(--success) !important; border-left-color:var(--success) !important; background:rgba(76,175,80,.1) !important; }
-
-    input:focus:not(:disabled), select:focus:not(:disabled) { outline:none; border-color:var(--gold); }
-    ::placeholder { color:#555; font-style:italic; }
-
-    .status { font-size:.7rem; color:#666; margin-top:3px; text-align:right; min-height:15px; }
-
-    .btn {
-      width:100%; padding:18px;
-      background:linear-gradient(135deg,var(--gold),#b39224);
-      border:none; font-weight:800; cursor:pointer; border-radius:6px; margin-top:25px;
-      text-transform:uppercase; color:#111;
-      transition:all .3s; opacity:1;
-    }
-    .btn:disabled { background:#444; color:#888; cursor:not-allowed; opacity:.5; }
-
-    .preview { display:flex; justify-content:center; align-items:flex-start; }
-    .slate {
-      position:relative; width:620px; height:620px;
-      background:#1a1a1a; border:10px solid #111; box-shadow:0 30px 80px rgba(0,0,0,.6);
-      background-image:radial-gradient(circle at 50% 50%, #2d2f31, #111);
-      overflow:hidden;
-    }
-    canvas { width:100%; height:100%; mix-blend-mode:screen; }
-
-    /* Location dropdown menu (custom, premium) */
-    .loc-wrap { position:relative; flex-grow:1; }
-    .loc-wrap input { width:100%; }
-    .loc-menu {
-      position:absolute;
-      left:0; right:0;
-      top:calc(100% + 6px);
-      background:#1d1e21;
-      border:1px solid #3a3a3a;
-      border-radius:10px;
-      box-shadow:0 18px 50px rgba(0,0,0,.55);
-      overflow:hidden;
-      z-index:50;
-      max-height:240px;
-      overflow-y:auto;
-    }
-    .loc-item {
-      padding:12px 12px;
-      cursor:pointer;
-      font-size:.92rem;
-      color:#e9e9e9;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    .loc-item:last-child { border-bottom:none; }
-    .loc-item:hover { background:#252629; }
-    .loc-item.active { background:rgba(212,175,55,.18); }
-    .loc-badge {
-      font-size:.72rem;
-      letter-spacing:1px;
-      color:#cfcfcf;
-      border:1px solid rgba(255,255,255,.12);
-      padding:3px 8px;
-      border-radius:999px;
-      flex:0 0 auto;
-    }
-    .loc-main { font-weight:600; color:#fff; }
-    .loc-sub { font-size:.78rem; color:#bdbdbd; margin-top:2px; }
-    .loc-text { display:flex; flex-direction:column; min-width:0; }
-    .loc-main, .loc-sub { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   </style>
 </head>
 <body>
-
 <div class="app">
   <div class="sidebar">
-    <h2>SlateStar <small>V32</small></h2>
+    <div class="brand-header">
+      <div class="brand-name">Get Your Boxx</div>
+      <div class="brand-tagline">Dein Moment in Stein</div>
+      <div class="logo-mark"></div>
+    </div>
+    <div class="specs-box">Schieferplatte 20×20cm</div>
+    <p class="intro">Konfiguriere deine persönliche Sternenkarte.<br>Exakt berechnet nach Ort &amp; Zeit.<br>Für die Ewigkeit graviert.</p>
 
-    <div class="mode-switch">
-      <button class="mode-btn active" onclick="setMode('date')" id="btnDate">Nach Datum</button>
-      <button class="mode-btn" onclick="setMode('zodiac')" id="btnZodiac">Sternzeichen</button>
+    <div class="group">
+      <label>1. Schnellwahl (Inspiration)</label>
+      <div class="chips">
+        <div class="chip-cat">❤️ Liebe</div>
+        <div class="chip" onclick="applyChip(this)">Unser erster Kuss</div>
+        <div class="chip" onclick="applyChip(this)">Ja, ich will</div>
+        <div class="chip" onclick="applyChip(this)">In den Sternen geschrieben</div>
+        <div class="chip-cat">👶 Geburt</div>
+        <div class="chip" onclick="applyChip(this)">Ein Stern ist geboren</div>
+        <div class="chip" onclick="applyChip(this)">Willkommen auf der Erde</div>
+        <div class="chip-cat">✨ Allgemein</div>
+        <div class="chip" onclick="applyChip(this)">Der Sternenhimmel</div>
+        <div class="chip" onclick="applyChip(this)">Unsere Nacht</div>
+        <div class="chip" onclick="applyChip(this)">Hier fing alles an</div>
+      </div>
     </div>
 
-    <div class="group visible">
-      <label>1. Name / Widmung (Max 18)</label>
+    <div class="group">
+      <label>2. Überschrift (Max 24 Zeichen)</label>
       <div class="input-row">
-        <input type="text" id="title" class="missing input-nav" placeholder="Namen hier eintippen..." maxlength="18" oninput="markTouched(this.id); validateAndRender()">
+        <input type="text" id="title" class="missing" placeholder="Name oder Satz..." maxlength="24" oninput="markTouched(this.id);validateAndRender()">
         <input type="checkbox" id="checkTitle" class="toggle-check" checked onchange="toggleField('title','checkTitle')">
       </div>
     </div>
 
-    <div id="grpDate" class="group visible">
-      <label>2. Datum</label>
+    <div class="group">
+      <label>3. Datum</label>
       <div class="input-row">
-        <input type="date" id="date" class="missing input-nav" oninput="markTouched(this.id); validateAndRender()">
+        <input type="date" id="date" class="missing" oninput="markTouched(this.id);validateAndRender()">
         <input type="checkbox" id="checkDate" class="toggle-check" checked onchange="toggleField('date','checkDate')">
       </div>
     </div>
 
-    <div id="grpTime" class="group visible">
-      <label>3. Uhrzeit</label>
+    <div class="group">
+      <label>4. Uhrzeit (Optional)</label>
       <div class="input-row">
-        <input type="time" id="time" class="input-nav" value="22:30" disabled oninput="markTouched(this.id); validateAndRender()">
+        <input type="time" id="time" value="22:00" disabled oninput="markTouched(this.id);validateAndRender()">
         <input type="checkbox" id="checkTime" class="toggle-check" onchange="toggleField('time','checkTime')">
       </div>
     </div>
 
-    <div id="grpLoc" class="group visible">
-      <label>4. Ort oder PLZ</label>
+    <div class="group">
+      <label>5. Ort (für Sterne &amp; Text)</label>
       <div class="input-row">
-        <div class="loc-wrap">
-          <input type="text" id="loc" class="missing input-nav" placeholder="Stadt oder PLZ..." autocomplete="off" oninput="markTouched('loc'); debouncedSearch()">
+        <div style="position:relative;flex-grow:1">
+          <input type="text" id="loc" placeholder="Stadt..." disabled oninput="markTouched('loc');debouncedSearch()" autocomplete="off">
           <div id="locMenu" class="loc-menu" hidden></div>
         </div>
-        <input type="checkbox" id="checkLoc" class="toggle-check" checked onchange="toggleField('loc','checkLoc')">
-      </div>      <div id="locStatus" class="status">Pflichtfeld</div>
-      <div class="status" id="locHint" style="text-align:left; color:#666; margin-top:6px;"></div>
+        <input type="checkbox" id="checkLoc" class="toggle-check" onchange="toggleField('loc','checkLoc')">
+      </div>
+      <div id="locStatus" class="status"></div>
     </div>
 
-    <div id="grpZodiac" class="group">
-      <label>2. Wähle Sternzeichen</label>
-      <div class="input-row">
-        <select id="zodiac" class="valid input-nav" onchange="validateAndRender()">
-          <option value="loewe" selected>Löwe</option>
-          <option value="skorpion">Skorpion</option>
-          <option value="orion">Orion</option>
-          <option value="zwillinge">Zwillinge</option>
-        </select>
+    <div class="group">
+      <label>Dein Paket</label>
+      <div class="info-box" style="border-left-color:var(--copper); background:rgba(232,159,2,0.04); font-size:0.78rem; padding:12px 14px; line-height:1.6">
+        <strong>Schieferplatte 20×20cm</strong> aus echtem Naturschiefer<br>
+        <strong>Holzständer</strong> passend zum Aufstellen<br>
+        <strong>Lasergravur</strong> deiner persönlichen Sternenkarte<br>
+        <strong>Versand</strong> kostenlos mit DHL (2–4 Werktage)
       </div>
     </div>
 
-    <div id="grpCustomText" class="group">
-      <label>3. Datum / Text</label>
-      <div class="input-row">
-        <input type="text" id="customText" class="missing input-nav" placeholder="z.B. 24.07.1995" oninput="markTouched(this.id); validateAndRender()">
-        <input type="checkbox" id="checkCustomText" class="toggle-check" checked onchange="toggleField('customText','checkCustomText')">
+    <div class="cta-area">
+      <div class="btn-row">
+        <div class="price-tag">
+          <span class="amount">50€</span>
+          <span class="price-sub">inkl. Ständer<br>&amp; Versand</span>
+        </div>
+        <button id="waBtn" class="btn-wa" onclick="sendWhatsApp()" disabled>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.747-2.874-2.512-2.96-2.626-.088-.113-.716-.953-.716-1.819 0-.866.454-1.292.616-1.463.162-.171.353-.214.471-.214.118 0 .236.002.339.006.11.004.258-.042.404.31.147.352.502 1.223.546 1.312.044.089.074.192.015.31-.059.118-.088.192-.177.296-.088.103-.186.231-.265.31-.088.089-.18.186-.077.363.103.177.458.756.983 1.224.675.602 1.244.789 1.421.877.177.088.281.074.384-.044.103-.118.442-.516.56-.693.118-.177.236-.148.398-.089.162.059 1.032.487 1.209.576.177.088.295.133.338.207.044.074.044.428-.1.833z"/></svg>
+          <span class="cta-text"><strong>Unverbindlich anfragen</strong><small>kostenlos • per WhatsApp</small></span>
+        </button>
+      </div>
+      <div class="trust-bar">
+        <div class="trust-item"><span>🇩🇪</span>Handgefertigt</div>
+        <div class="trust-item"><span>📦</span>2–4 Werktage</div>
+        <div class="trust-item"><span>🛡️</span>Zufriedenheitsgarantie</div>
       </div>
     </div>
-
-    <div class="group visible">
-      <label>5. Schriftart Wählen</label>
-      <select id="font" class="missing input-nav" onchange="validateAndRender()">
-        <option value="" disabled selected>-- BITTE WÄHLEN --</option>
-        <option value="'Montserrat', sans-serif">Modern (Montserrat)</option>
-        <option value="'EB Garamond', serif">Klassisch (Garamond)</option>
-        <option value="'Cinzel', serif">Römisch (Cinzel)</option>
-        <option value="'Playfair Display', serif">Luxuriös (Playfair)</option>
-      </select>
-    </div>
-
-    <div class="group visible">
-      <label>6. Montage Wählen</label>
-      <select id="mount" class="missing input-nav" onchange="validateAndRender()">
-        <option value="" disabled selected>-- BITTE WÄHLEN --</option>
-        <option value="stand">Holzständer (Volle Fläche)</option>
-        <option value="wall">Wand (2 Löcher)</option>
-      </select>
-    </div>
-
-    <button id="dlBtn" class="btn" onclick="download()" disabled>Bitte alles ausfüllen</button>
   </div>
 
   <div class="preview">
     <div class="slate">
-      <canvas id="cvs" width="2362" height="2362"></canvas>
+      <div class="slate-base"></div>
+      <div class="slate-texture"></div>
+      <div class="slate-grain"></div>
+      <div class="slate-layers"></div>
+      <div class="slate-edge"></div>
+      <div class="slate-border"></div>
+      <canvas id="cvs"></canvas>
+    </div>
+    <div class="reviews">
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <div class="quote">„Wunderschön graviert. Meine Freundin hatte Tränen in den Augen!"</div>
+        <div class="author">— Luisa, Berlin</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <div class="quote">„Haben es zur Taufe verschenkt. Sieht in echt noch besser aus als auf dem Bild."</div>
+        <div class="author">— Marco, München</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <div class="quote">„Super schnelle Lieferung und die Qualität ist top. Bestelle definitiv nochmal."</div>
+        <div class="author">— Sarah, Hamburg</div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-let APP_MODE = 'date';
+  // ========================
+  // CONFIG
+  // ========================
+  const MY_PHONE = "4915224242302";
+  const API_KEY = "08f31ef48294759c12765e4bf81e8b9d"; // Hinweis: im Frontend immer öffentlich sichtbar.
 
-// NOTE: If you open this as a local file (file://), many browsers block fetch() to external APIs.
-// The star map still works, but the location search may fail. Serve via http(s) (e.g., http://localhost) for full features.
-const IS_FILE_PROTOCOL = (location.protocol === 'file:');
+  const IS_MOBILE = window.innerWidth <= 860;
+  const S = IS_MOBILE ? 1200 : 2362;
 
-// --- Touched/dirty-state handling (prevents fields turning green just by enabling)
-const TOUCH_IDS = ['date','time','loc','customText'];
-function initTouched() {
-  for (const id of TOUCH_IDS) {
+  const cvs = document.getElementById('cvs');
+  cvs.width = S;
+  cvs.height = S;
+  const ctx = cvs.getContext('2d');
+
+  let GEO = { lat: 51.16, lon: 10.45, name: '' };
+  let SUGGESTIONS = [];
+  let timer;
+
+  // ========================
+  // TOUCHED-STATE (Fix)
+  // ========================
+  const TOUCH_IDS = ['title','date','time','loc'];
+  function initTouched(){
+    TOUCH_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.dataset.touched = '0';
+    });
+  }
+  function markTouched(id){
     const el = document.getElementById(id);
-    if (el) el.dataset.touched = '0';
+    if (el && !el.disabled) el.dataset.touched = '1';
   }
-}
-function markTouched(id) {
-  if (!id) return;
-  const el = document.getElementById(id);
-  if (!el) return;
-  // Only mark as touched when the user can actually edit it
-  if (el.disabled) return;
-  el.dataset.touched = '1';
-}
+  initTouched();
 
+  window.onload = function(){
+    const dateEl = document.getElementById('date');
+    dateEl.valueAsDate = new Date();
+    // wichtig, sonst bleibt das Datum „missing“
+    dateEl.dataset.touched = '1';
 
-// Default Germany center
-let GEO = { lat: 51.16, lon: 10.45, name: '' };
+    // Default Berlin (kannst du später per Browser-Geolocation ersetzen)
+    GEO = { lat: 52.52, lon: 13.40, name: '' };
 
-const S = 2362;
-const PX_CM = S / 20;
-
-// Laser style (B)
-const LASER = {
-  STAR_SHAPE: 'circle',      // circles only
-  STAR_MIN_R: 2.8,
-  STAR_MAX_R: 10.5,
-  LINE_WIDTH: 2.0,           // set to 1.0 if you want ultra-thin
-  THRESHOLD: 127,
-};
-
-const ctx = document.getElementById('cvs').getContext('2d');
-
-// init touched flags once DOM is ready
-initTouched();
-
-// Location menu keyboard + focus handling
-(function initLocMenuUI(){
-  const input = document.getElementById('loc');
-  if (!input) return;
-
-  input.addEventListener('focus', () => {
-    if (SUGGESTIONS.length) renderLocMenu();
-  });
-
-  input.addEventListener('blur', () => {
-    // tiny delay so click selection can register
-    setTimeout(() => hideLocMenu(), 120);
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (document.getElementById('locMenu')?.hidden !== false) {
-      if (e.key === 'ArrowDown' && SUGGESTIONS.length) {
-        e.preventDefault();
-        renderLocMenu();
-        setLocActive(0);
-      }
-      return;
-    }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setLocActive((locActiveIndex < 0 ? 0 : locActiveIndex + 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setLocActive((locActiveIndex <= 0 ? 0 : locActiveIndex - 1));
-    } else if (e.key === 'Enter') {
-      if (locActiveIndex >= 0 && SUGGESTIONS[locActiveIndex]) {
-        e.preventDefault();
-        applyLocSuggestion(SUGGESTIONS[locActiveIndex], '✓ Ausgewählt');
-        hideLocMenu();
-        validateAndRender();
-      }
-    } else if (e.key === 'Escape') {
-      hideLocMenu();
-    }
-  });
-})();
-
-// --- Background starfield (static)
-let STATIC_BG_STARS = [];
-function initBackgroundStars() {
-  const radius = 7 * PX_CM;
-  for (let i = 0; i < 9000; i++) {
-    const r = Math.sqrt(Math.random()) * radius;
-    const a = Math.random() * Math.PI * 2;
-    const size = Math.random() * 0.7 + 0.7;
-    STATIC_BG_STARS.push({ x: r * Math.cos(a), y: r * Math.sin(a), size });
-  }
-}
-initBackgroundStars();
-
-// --- FIX: Canvas has no letterSpacing => draw with tracking
-function drawTextWithTracking(ctx, text, x, y, trackingPx) {
-  if (!text) return;
-  const chars = Array.from(text);
-  let total = 0;
-  for (const ch of chars) total += ctx.measureText(ch).width;
-  total += trackingPx * (chars.length - 1);
-  let startX = x - total / 2;
-  for (const ch of chars) {
-    const w = ctx.measureText(ch).width;
-    ctx.fillText(ch, startX + w / 2, y);
-    startX += w + trackingPx;
-  }
-}
-
-function setValidity(el, isValid) {
-  if (isValid) { el.classList.remove('missing'); el.classList.add('valid'); }
-  else { el.classList.add('missing'); el.classList.remove('valid'); }
-}
-
-// --- NAV: Enter jumps to next visible input
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Enter') {
-    const inputs = Array.from(document.querySelectorAll('.input-nav'));
-    const visibleInputs = inputs.filter(el => el.offsetParent !== null && !el.disabled);
-    const index = visibleInputs.indexOf(e.target);
-    if (index > -1 && index < visibleInputs.length - 1) visibleInputs[index + 1].focus();
-  }
-});
-
-function setMode(mode) {
-  APP_MODE = mode;
-  document.getElementById('btnDate').className = mode === 'date' ? 'mode-btn active' : 'mode-btn';
-  document.getElementById('btnZodiac').className = mode === 'zodiac' ? 'mode-btn active' : 'mode-btn';
-
-  document.getElementById('grpDate').style.display = mode === 'date' ? 'block' : 'none';
-  document.getElementById('grpTime').style.display = mode === 'date' ? 'block' : 'none';
-  document.getElementById('grpLoc').style.display = mode === 'date' ? 'block' : 'none';
-
-  document.getElementById('grpZodiac').style.display = mode === 'zodiac' ? 'block' : 'none';
-  document.getElementById('grpCustomText').style.display = mode === 'zodiac' ? 'block' : 'none';
-
-  validateAndRender();
-}
-
-// --- Toggle checkbox enable/disable
-function toggleField(inputId, checkId) {
-  const isChecked = document.getElementById(checkId).checked;
-  const input = document.getElementById(inputId);
-  input.disabled = !isChecked;
-
-  // Critical: enabling must NOT auto-validate green
-  // Reset touched flag and visual state until user edits the field.
-  if (TOUCH_IDS.includes(inputId)) input.dataset.touched = '0';
-  input.classList.remove('valid');
-  if (isChecked && (inputId === 'date' || inputId === 'loc' || inputId === 'customText')) {
-    input.classList.add('missing');
-  }
-  if (isChecked && inputId === 'time') {
-    // time is optional -> only show missing when enabled, but never green until touched
-    input.classList.add('missing');
-  }
-
-  if (inputId === 'loc') {
-    const status = document.getElementById('locStatus');
-    status.innerText = isChecked ? 'Pflichtfeld' : '';
-    status.style.color = '#666';
-  }
-
-  validateAndRender();
-}
-
-// --- Nominatim caching + abort (silent)
-const GEO_CACHE_KEY = 'slatestar_geo_cache_v2';
-function loadGeoCache() {
-  try { return JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || '{}'); } catch { return {}; }
-}
-function saveGeoCache(cache) {
-  try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify(cache)); } catch {}
-}
-let geoCache = loadGeoCache();
-let geoAbort = null;
-let SUGGESTIONS = []; // array of {label, main, sub, badge, lat, lon, name}
-let locActiveIndex = -1;
-let locLastQuery = '';
-
-let timer;
-function debouncedSearch() {
-  const input = document.getElementById('loc');
-  const val = input.value.trim();
-
-  const checkbox = document.getElementById('checkLoc');
-  // Only mark valid if user actually typed (touched) AND length ok
-  if (checkbox.checked) setValidity(input, val.length > 1 && input.dataset.touched === '1');
-
-  const status = document.getElementById('locStatus');
-  status.innerText = val.length > 1 ? '⏳ Suche...' : 'Pflichtfeld';
-  status.style.color = '#666';
-
-  // Hide menu if query too short
-  if (val.length < 2) hideLocMenu();
-
-  clearTimeout(timer);
-  timer = setTimeout(() => geocode(val), 380);
-}
-
-async function geocode(q) {
-  // Local-file safety: browsers often block external requests from file://
-  if (IS_FILE_PROTOCOL) {
-    const status = document.getElementById('locStatus');
-    if (status) {
-      status.innerText = '⚠️ Ortssuche lokal blockiert (bitte über http öffnen)';
-      status.style.color = '#aaa';
-    }
-    hideLocMenu();
-    return;
-  }
-  const status = document.getElementById('locStatus');
-  const input = document.getElementById('loc');
-
-  if (!document.getElementById('checkLoc').checked) return;
-  if (!q || q.length < 2) {
-    hideLocMenu();
-    return;
-  }
-
-  // If user selected an exact label from our menu previously
-  const picked = SUGGESTIONS.find(s => s.label === q);
-  if (picked) {
-    applyLocSuggestion(picked, '✓ Ausgewählt');
-    hideLocMenu();
-    return;
-  }
-
-  // Cache shortcut (store best-known place name + coords, independent of scope)
-  const key = q.toLowerCase();
-  if (geoCache[key]) {
-    GEO.lat = geoCache[key].lat;
-    GEO.lon = geoCache[key].lon;
-    GEO.name = geoCache[key].name;
-    status.innerText = '✓ Gefunden';
-    status.style.color = '#4caf50';
-    hideLocMenu();
-    render();
-    return;
-  }
-
-  if (geoAbort) geoAbort.abort();
-  geoAbort = new AbortController();
-
-  function extractPlaceName(item, fallback) {
-    const addr = item.address || {};
-    const name = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || addr.county || addr.state;
-    if (name) return name;
-
-    const parts = String(item.display_name || fallback).split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length > 1 && /^[0-9]{4,5}$/.test(parts[0])) return parts[1];
-    return parts[0] || fallback;
-  }
-
-  function extractBadge(item, scope) {
-    const addr = item.address || {};
-    const pc = addr.postcode;
-    if (pc && /^[0-9]{4,5}$/.test(String(pc))) return String(pc);
-    return scope === 'world' ? 'INT' : 'ORT';
-  }
-
-  function withTimeout(ms, promise) {
-    let t;
-    const timeout = new Promise((_, rej) => {
-      t = setTimeout(() => rej(new Error('timeout')), ms);
-    });
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
-  }
-
-  const DACH_CC = new Set(['de','at','ch']);
-
-  async function fetchPhoton(scope) {
-    // Photon is OSM-based and generally more reliable for client-side use.
-    const url = 'https://photon.komoot.io/api/?limit=8&lang=de&q=' + encodeURIComponent(q);
-    const r = await withTimeout(3500, fetch(url, { signal: geoAbort.signal, headers: { 'Accept': 'application/json' } }));
-    const j = await r.json();
-    const feats = Array.isArray(j?.features) ? j.features : [];
-
-    const out = [];
-    for (const f of feats) {
-      const p = f.properties || {};
-      const cc = String(p.countrycode || '').toLowerCase();
-      if (scope === 'dach' && cc && !DACH_CC.has(cc)) continue;
-
-      const coords = f.geometry?.coordinates;
-      if (!Array.isArray(coords) || coords.length < 2) continue;
-      const lon = parseFloat(coords[0]);
-      const lat = parseFloat(coords[1]);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-
-      const placeName = p.city || p.town || p.village || p.name || p.state || p.county || q;
-      const badge = (p.postcode && /^[0-9]{4,5}$/.test(String(p.postcode))) ? String(p.postcode) : (scope === 'world' ? 'INT' : 'ORT');
-
-      const subParts = [];
-      if (p.state && p.state !== placeName) subParts.push(p.state);
-      if (p.country) subParts.push(p.country);
-      const sub = subParts.join(', ');
-
-      const labelParts = [placeName];
-      if (p.postcode) labelParts.push(String(p.postcode));
-      if (p.country) labelParts.push(p.country);
-      const label = labelParts.filter(Boolean).join(', ');
-
-      out.push({ label, main: placeName, sub, badge, lat, lon, name: placeName });
-    }
-
-    return out.slice(0, 6);
-  }
-
-  async function fetchNominatim(scope) {
-    // Secondary fallback (best-effort)
-    const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=' + encodeURIComponent(q);
-    const url = scope === 'dach' ? (base + '&countrycodes=de,at,ch') : base;
-    const r = await withTimeout(3500, fetch(url, { signal: geoAbort.signal, headers: { 'Accept': 'application/json' } }));
-    const d = await r.json();
-    return Array.isArray(d) ? d : [];
-  }
-
-  async function fetchPlaces(scope) {
-    try {
-      const ph = await fetchPhoton(scope);
-      if (ph.length) return { source: 'photon', scope, results: ph };
-    } catch (_) {}
-
-    try {
-      const nom = await fetchNominatim(scope);
-      return { source: 'nominatim', scope, results: nom };
-    } catch (_) {
-      return { source: 'none', scope, results: [] };
-    }
-  }
-
-  try {
-    locLastQuery = q;
-
-    // 1) Try DACH first (fast, clean)
-    let scope = 'dach';
-    let pack = await fetchPlaces('dach');
-    let d = pack.results;
-
-    // 2) Auto-fallback to worldwide if no hit
-    if (!d.length) {
-      scope = 'world';
-      pack = await fetchPlaces('world');
-      d = pack.results;
-    }
-
-    SUGGESTIONS = [];
-    locActiveIndex = -1;
-
-    // If Photon returned normalized suggestions, use them directly.
-    const isPhoton = Array.isArray(d) && d.length && d[0] && Object.prototype.hasOwnProperty.call(d[0], 'lat') && Object.prototype.hasOwnProperty.call(d[0], 'label');
-
-    if (d.length > 0) {
-      if (isPhoton) {
-        for (const s of d) SUGGESTIONS.push(s);
-      } else {
-        for (const item of d) {
-        const placeName = extractPlaceName(item, q);
-        const badge = extractBadge(item, scope);
-
-        const parts = String(item.display_name || '').split(',').map(s => s.trim()).filter(Boolean);
-        const sub = parts.slice(1, 4).join(', ');
-        const label = (parts.slice(0, 4).join(', ') || placeName).trim();
-
-        SUGGESTIONS.push({
-          label,
-          main: placeName,
-          sub,
-          badge,
-          lat: parseFloat(item.lat),
-          lon: parseFloat(item.lon),
-          name: placeName,
-        });
-      }
-      }
-
-      // Apply best result as default GEO (but always show city name)
-      const best = SUGGESTIONS[0];
-      GEO.lat = best.lat;
-      GEO.lon = best.lon;
-      GEO.name = best.name;
-
-      geoCache[key] = { lat: GEO.lat, lon: GEO.lon, name: GEO.name, t: Date.now() };
-      saveGeoCache(geoCache);
-
-      status.innerText = scope === 'world' ? '✓ Gefunden (International)' : '✓ Gefunden';
-      status.style.color = '#4caf50';
-
-      renderLocMenu();
-      render();
-    } else {
-      hideLocMenu();
-      status.innerText = '❓ Nicht gefunden (Druck ok)';
-      status.style.color = '#aaa';
-      render();
-    }
-  } catch (err) {
-    if (err?.name === 'AbortError') return;
-    hideLocMenu();
-    status.innerText = '⚠️ Suche nicht verfügbar (Druck ok)';
-    status.style.color = '#aaa';
-    render();
-  }
-}
-
-function applyLocSuggestion(s, statusText) {
-  const status = document.getElementById('locStatus');
-  const input = document.getElementById('loc');
-
-  GEO.lat = s.lat;
-  GEO.lon = s.lon;
-  GEO.name = s.name;
-
-  // Put a clean label in the input (still lets user overwrite)
-  input.value = s.label;
-  input.dataset.touched = '1';
-
-  status.innerText = statusText || '✓ Ausgewählt';
-  status.style.color = '#4caf50';
-
-  // keep field validity correct
-  setValidity(input, input.value.trim().length > 1);
-  render();
-}
-
-function renderLocMenu() {
-  const menu = document.getElementById('locMenu');
-  const input = document.getElementById('loc');
-
-  if (!menu) return;
-  if (!SUGGESTIONS || SUGGESTIONS.length === 0) {
-    hideLocMenu();
-    return;
-  }
-
-  // Only show if the user is currently typing in this field
-  if (document.activeElement !== input) {
-    hideLocMenu();
-    return;
-  }
-
-  menu.innerHTML = '';
-  for (let i = 0; i < SUGGESTIONS.length; i++) {
-    const s = SUGGESTIONS[i];
-    const row = document.createElement('div');
-    row.className = 'loc-item' + (i === locActiveIndex ? ' active' : '');
-
-    const badge = document.createElement('div');
-    badge.className = 'loc-badge';
-    badge.textContent = s.badge || 'ORT';
-
-    const text = document.createElement('div');
-    text.className = 'loc-text';
-
-    const main = document.createElement('div');
-    main.className = 'loc-main';
-    main.textContent = s.main;
-
-    const sub = document.createElement('div');
-    sub.className = 'loc-sub';
-    sub.textContent = s.sub;
-
-    text.appendChild(main);
-    if (s.sub) text.appendChild(sub);
-
-    row.appendChild(badge);
-    row.appendChild(text);
-
-    // Use mousedown so it fires before blur
-    row.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      applyLocSuggestion(s, '✓ Ausgewählt');
-      hideLocMenu();
-      validateAndRender();
-    });
-
-    menu.appendChild(row);
-  }
-
-  menu.hidden = false;
-}
-
-function hideLocMenu() {
-  const menu = document.getElementById('locMenu');
-  if (!menu) return;
-  menu.hidden = true;
-  menu.innerHTML = '';
-  locActiveIndex = -1;
-}
-
-function setLocActive(index) {
-  locActiveIndex = Math.max(0, Math.min(index, SUGGESTIONS.length - 1));
-  renderLocMenu();
-
-  // ensure active item is visible
-  const menu = document.getElementById('locMenu');
-  if (!menu || menu.hidden) return;
-  const active = menu.querySelector('.loc-item.active');
-  if (!active) return;
-  const aTop = active.offsetTop;
-  const aBot = aTop + active.offsetHeight;
-  if (aTop < menu.scrollTop) menu.scrollTop = aTop;
-  else if (aBot > menu.scrollTop + menu.clientHeight) menu.scrollTop = aBot - menu.clientHeight;
-}
-
-// --- Zodiac centers (RA/Dec)
-const ZODIAC_CENTER = {
-  loewe: { ra: 10.5, dec: 15 },
-  skorpion: { ra: 16.5, dec: -26 },
-  orion: { ra: 5.5, dec: 0 },
-  zwillinge: { ra: 7.0, dec: 20 }
-};
-
-// (A) Expanded bright-star catalog (approx. RA hours, Dec degrees, Mag)
-// Focus: visually stable, includes many common constellation anchors.
-const STARS = [
-  // Major anchors (very bright)
-  {id:1,  ra:6.752, dec:-16.716, mag:-1.46}, // Sirius
-  {id:2,  ra:14.261,dec:19.182,  mag:-0.05}, // Arcturus
-  {id:3,  ra:5.242, dec:-8.201,  mag:0.18},  // Rigel
-  {id:4,  ra:5.919, dec:7.407,   mag:0.45},  // Betelgeuse
-  {id:5,  ra:18.615,dec:38.783,  mag:0.03},  // Vega
-  {id:6,  ra:7.656, dec:5.225,   mag:0.38},  // Procyon
-  {id:7,  ra:5.278, dec:45.999,  mag:0.08},  // Capella
-  {id:8,  ra:13.419,dec:-11.161, mag:1.04},  // Spica
-  {id:9,  ra:16.490,dec:-26.432, mag:1.06},  // Antares
-  {id:10, ra:19.846,dec:8.868,   mag:0.77},  // Altair
-  {id:11, ra:21.736,dec:9.875,   mag:1.25},  // Deneb (approx)
-  {id:12, ra:4.598, dec:16.509,  mag:0.86},  // Aldebaran
-  {id:13, ra:2.530, dec:89.264,  mag:1.98},  // Polaris
-
-  // Big Dipper / Ursa Major
-  {id:101, ra:11.062,dec:61.750, mag:1.79}, // Dubhe
-  {id:102, ra:11.030,dec:56.382, mag:2.37}, // Merak
-  {id:103, ra:11.897,dec:53.694, mag:2.44}, // Phecda
-  {id:104, ra:12.257,dec:57.033, mag:2.41}, // Megrez
-  {id:105, ra:12.900,dec:55.959, mag:1.85}, // Alioth
-  {id:106, ra:13.398,dec:54.925, mag:2.23}, // Mizar
-  {id:107, ra:13.792,dec:49.314, mag:1.86}, // Alkaid
-
-  // Cassiopeia (W)
-  {id:120, ra:0.675, dec:56.537, mag:2.24}, // Schedar
-  {id:121, ra:1.906, dec:63.670, mag:2.28}, // Caph
-  {id:122, ra:1.430, dec:60.235, mag:2.66}, // Gamma Cas
-  {id:123, ra:0.945, dec:60.717, mag:2.25}, // Ruchbah
-  {id:124, ra:0.152, dec:59.149, mag:3.00}, // Epsilon Cas
-
-  // Orion
-  {id:130, ra:5.919, dec:7.407,  mag:0.45}, // Betelgeuse (dup id avoided below)
-  {id:131, ra:5.242, dec:-8.201, mag:0.18}, // Rigel
-  {id:132, ra:5.603, dec:-1.201, mag:1.70}, // Mintaka
-  {id:133, ra:5.679, dec:-1.943, mag:1.70}, // Alnilam
-  {id:134, ra:5.820, dec:9.934,  mag:1.64}, // Bellatrix
-  {id:135, ra:5.407, dec:-2.397, mag:2.25}, // Alnitak
-  {id:136, ra:5.533, dec:-0.299, mag:2.77}, // Saiph (approx)
-
-  // Taurus / Pleiades-ish anchors
-  {id:140, ra:4.598, dec:16.509, mag:0.86}, // Aldebaran
-  {id:141, ra:3.792, dec:24.105, mag:2.85}, // Elnath-ish (approx)
-
-  // Gemini
-  {id:150, ra:7.576, dec:31.888, mag:1.58}, // Castor
-  {id:151, ra:7.755, dec:28.026, mag:1.14}, // Pollux
-
-  // Leo
-  {id:160, ra:10.140,dec:11.967, mag:1.35}, // Regulus
-  {id:161, ra:11.817,dec:14.572, mag:2.14}, // Denebola
-  {id:162, ra:10.332,dec:19.841, mag:2.00}, // Algieba
-
-  // Scorpius
-  {id:170, ra:16.490,dec:-26.432,mag:1.06}, // Antares
-  {id:171, ra:17.560,dec:-37.103,mag:1.62}, // Shaula-ish
-  {id:172, ra:16.199,dec:-19.460,mag:2.30}, // Dschubba-ish
-
-  // Cygnus / Lyra / Aquila triangle
-  {id:180, ra:18.615,dec:38.783, mag:0.03}, // Vega
-  {id:181, ra:19.846,dec:8.868,  mag:0.77}, // Altair
-  {id:182, ra:20.690,dec:45.280, mag:1.25}, // Deneb-ish
-
-  // Extra bright-ish filler (handpicked/approx) to reach a denser map
-  {id:201, ra:1.628, dec:-57.236, mag:0.46},
-  {id:202, ra:3.405, dec:49.861,  mag:1.90},
-  {id:203, ra:9.220, dec:-69.717, mag:0.61},
-  {id:204, ra:12.443,dec:-63.099, mag:0.61},
-  {id:205, ra:17.560,dec:-37.103, mag:1.62},
-  {id:206, ra:22.137,dec:-46.960, mag:1.17},
-  {id:207, ra:23.079,dec:15.205,  mag:2.06},
-  {id:208, ra:0.139, dec:29.090,  mag:2.06},
-  {id:209, ra:2.065, dec:42.329,  mag:2.10},
-  {id:210, ra:6.399, dec:-52.695, mag:1.50},
-  {id:211, ra:8.375, dec:-47.337, mag:1.75},
-  {id:212, ra:9.459, dec:-8.658,  mag:1.98},
-  {id:213, ra:10.279,dec:23.417,  mag:2.23},
-  {id:214, ra:11.322,dec:-14.779, mag:2.00},
-  {id:215, ra:12.519,dec:-57.113, mag:1.33},
-  {id:216, ra:13.792,dec:49.313,  mag:2.90},
-  {id:217, ra:15.578,dec:26.714,  mag:2.23},
-  {id:218, ra:16.006,dec:-22.621, mag:2.80},
-  {id:219, ra:17.245,dec:14.390,  mag:2.35},
-  {id:220, ra:18.402,dec:-34.384, mag:2.60},
-  {id:221, ra:20.427,dec:-56.735, mag:2.70},
-  {id:222, ra:21.309,dec:62.585,  mag:2.45},
-  {id:223, ra:22.961,dec:-29.622, mag:2.00},
-  {id:224, ra:23.655,dec:77.632,  mag:2.02},
-];
-
-// De-duplicate ids (some anchors above reused). Keep first occurrence.
-const _seen = new Set();
-const STARS_UNIQ = STARS.filter(s => { if (_seen.has(s.id)) return false; _seen.add(s.id); return true; });
-
-// (A) 20-ish popular constellations / a compact but richer line set.
-// These lines are deliberately simple (good for engraving).
-const LINES = [
-  // Orion (belt + frame)
-  [132,133],[133,135],[134,132],[134,130],[130,133],[133,131],[131,136],
-  // Ursa Major (Big Dipper)
-  [101,102],[102,103],[103,104],[104,105],[105,106],[106,107],
-  // Cassiopeia
-  [121,122],[122,123],[123,120],[120,124],
-  // Gemini
-  [150,151],
-  // Leo (simple)
-  [160,162],[162,161],
-  // Scorpius (simple)
-  [172,170],[170,171],
-  // Summer Triangle (decorative)
-  [180,182],[182,181],[181,180],
-  // Little hint line: Dubhe -> Polaris (navigation feel)
-  [101,13],
-];
-
-// --- Validation
-function validateAndRender() {
-  let allValid = true;
-
-  const check = (id, checkId, validator) => {
-    const input = document.getElementById(id);
-    const checkbox = checkId ? document.getElementById(checkId) : { checked: true };
-
-    if (!checkbox.checked) {
-      input.classList.remove('missing');
-      input.classList.remove('valid');
-      return true;
-    }
-
-    const valid = validator(input.value);
-    setValidity(input, valid);
-    return valid;
+    validateAndRender();
   };
 
-  // Title: required whenever enabled
-  if (!check('title', 'checkTitle', v => v.trim().length > 0)) allValid = false;
+  // Close location menu on outside click
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('locMenu');
+    const inp = document.getElementById('loc');
+    if (!menu || menu.hidden) return;
+    if (e.target !== inp && !menu.contains(e.target)) hideLocMenu();
+  });
 
-  if (APP_MODE === 'date') {
-    // Date/time/location become valid ONLY after user input (touched)
-    if (!check('date', 'checkDate', v => v !== '' && document.getElementById('date').dataset.touched === '1')) allValid = false;
-    if (!check('time', 'checkTime', v => v !== '' && document.getElementById('time').dataset.touched === '1')) allValid = false;
-    if (!check('loc', 'checkLoc', v => v.trim().length > 1 && document.getElementById('loc').dataset.touched === '1')) allValid = false;
-  } else {
-    if (!check('customText', 'checkCustomText', v => v.trim().length > 0 && document.getElementById('customText').dataset.touched === '1')) allValid = false;
+  // ========================
+  // UI HELPERS
+  // ========================
+  function applyChip(el){
+    const v = el.textContent.trim();
+    const t = document.getElementById('title');
+    t.value = v;
+    markTouched('title');
+    setValidity(t, true);
+
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+
+    validateAndRender();
   }
 
-  // Font/Mount always mandatory
-  if (!check('font', null, v => v !== '')) allValid = false;
-  if (!check('mount', null, v => v !== '')) allValid = false;
+  function setValidity(el, ok){
+    if (!el) return;
+    if (ok) {
+      el.classList.remove('missing');
+      el.classList.add('valid');
+    } else {
+      el.classList.add('missing');
+      el.classList.remove('valid');
+    }
+  }
 
-  const btn = document.getElementById('dlBtn');
-  if (allValid) {
-    btn.disabled = false;
-    btn.innerText = '⇩ PNG HERUNTERLADEN';
-    btn.style.background = 'linear-gradient(135deg, var(--gold), #b39224)';
-  } else {
+  function toggleField(id, cid){
+    const c = document.getElementById(cid).checked;
+    const el = document.getElementById(id);
+    el.disabled = !c;
+    el.classList.remove('valid','missing');
+    if (id === 'loc') document.getElementById('locStatus').innerText = c ? 'Pflichtfeld' : '';
+    validateAndRender();
+  }
+
+  function validateAndRender(){
+    let ok = true;
+
+    const chk = (id, cid, fn) => {
+      const el = document.getElementById(id);
+      const cb = document.getElementById(cid);
+      if (!cb.checked) {
+        el.classList.remove('missing','valid');
+        return true;
+      }
+      const v = fn(el.value);
+      setValidity(el, v);
+      return v;
+    };
+
+    if (!chk('title','checkTitle', v => v.trim().length > 0)) ok = false;
+    if (!chk('date','checkDate', v => v !== '')) ok = false;
+
+    if (document.getElementById('checkTime').checked && !document.getElementById('time').value) ok = false;
+    if (document.getElementById('checkLoc').checked && document.getElementById('loc').value.trim().length < 2) ok = false;
+
+    document.getElementById('waBtn').disabled = !ok;
+    render();
+  }
+
+  // ========================
+  // WhatsApp + Upload (Fix)
+  // ========================
+  async function sendWhatsApp(){
+    const btn = document.getElementById('waBtn');
+    const orig = btn.innerHTML;
+
+    btn.innerHTML =
+      '<svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+      '<circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>' +
+      '<path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>' +
+      '<span class="cta-text"><strong>Lade hoch...</strong><small>Bitte kurz warten</small></span>';
+
     btn.disabled = true;
-    btn.innerText = 'Bitte rote Felder ausfüllen';
-    btn.style.background = '#444';
+
+    const title = document.getElementById('title').value.trim();
+    const date = document.getElementById('date').value;
+
+    const timeCheck = document.getElementById('checkTime').checked;
+    const timeVal = timeCheck ? (document.getElementById('time').value || 'Nicht angegeben') : 'Nicht angegeben';
+
+    const locCheck = document.getElementById('checkLoc').checked;
+    const locVal = locCheck ? (document.getElementById('loc').value.trim() || 'Nicht angegeben') : 'Standard (Berlin)';
+
+    const font = 'Montserrat';
+
+    let imageUrl = "[Upload ausstehend]";
+
+    // Generate image data
+    let uploadData;
+    if (IS_MOBILE) {
+      const hq = document.createElement('canvas');
+      hq.width = 2362;
+      hq.height = 2362;
+      renderToCtx(hq.getContext('2d'), 2362, true);
+      uploadData = hq.toDataURL('image/png').split(',')[1];
+    } else {
+      uploadData = cvs.toDataURL('image/png').split(',')[1];
+    }
+
+    // Upload
+    try {
+      const fd = new FormData();
+      fd.append('key', API_KEY);
+      fd.append('image', uploadData);
+      const r = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+      const j = await r.json();
+      imageUrl = (j && j.success && j.data && j.data.url) ? j.data.url : '[Upload fehlgeschlagen]';
+    } catch(e) {
+      imageUrl = '[Upload Fehler]';
+    }
+
+    const msg =
+`Hallo Get Your Boxx! Ich möchte eine Sternen-Platte anfragen:
+Design: ${title || '[Titel fehlt]'}
+Datum: ${date || '[Datum fehlt]'}
+Uhrzeit: ${timeVal}
+Ort: ${locVal}
+Schrift: ${font}
+Größe: 20x20 cm + Holzständer
+
+Mein Entwurf: ${imageUrl}
+
+Bitte meldet euch für die Details!`;
+
+    window.location.href = `https://wa.me/${MY_PHONE}?text=${encodeURIComponent(msg)}`;
+
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.disabled = false;
+    }, 1200);
   }
 
-  render();
-}
+  // ========================
+  // GEO SEARCH
+  // ========================
+  function debouncedSearch(){
+    const inp = document.getElementById('loc');
+    const v = inp.value.trim();
+    const cb = document.getElementById('checkLoc');
 
-// --- Compass removed (clean layout: nothing touches the typography)
+    if (cb.checked) setValidity(inp, v.length > 1);
+    document.getElementById('locStatus').innerText = v.length > 1 ? '⏳ Suche...' : '';
 
-// --- Main render
-function render() {
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, S, S);
+    if (v.length < 2) hideLocMenu();
 
-  let fontVal = document.getElementById('font').value;
-  if (!fontVal) fontVal = "'Montserrat', sans-serif";
+    clearTimeout(timer);
+    timer = setTimeout(() => geocode(v), 380);
+  }
 
-  const showTitle = document.getElementById('checkTitle').checked;
-  const showDate  = document.getElementById('checkDate').checked;
-  const showTime  = document.getElementById('checkTime').checked;
-  const showLoc   = document.getElementById('checkLoc').checked;
-  const showCustom= document.getElementById('checkCustomText').checked;
+  async function geocode(q){
+    if (!document.getElementById('checkLoc').checked || !q || q.length < 2) {
+      hideLocMenu();
+      return;
+    }
+    try {
+      const r = await fetch('https://photon.komoot.io/api/?limit=6&lang=de&q=' + encodeURIComponent(q));
+      const j = await r.json();
+      SUGGESTIONS = j.features.map(f => {
+        const p = f.properties;
+        return {
+          label: [p.name, p.city, p.country].filter(Boolean).join(', '),
+          lat: f.geometry.coordinates[1],
+          lon: f.geometry.coordinates[0],
+          name: p.city || p.name || q
+        };
+      });
+      if (SUGGESTIONS.length) renderLocMenu();
+    } catch(e) {
+      // silent
+    }
+  }
 
-  let title = (document.getElementById('title').value || '').trim();
-  const timeStr = document.getElementById('time').value;
+  function applyGeo(s){
+    GEO = s;
+    document.getElementById('loc').value = s.label || s.name;
+    hideLocMenu();
+    render();
+  }
 
-  let isTitlePh = false, isDatePh = false, isLocPh = false;
-  if (showTitle && !title) { title = '[ Name eingeben ]'; isTitlePh = true; }
+  function renderLocMenu(){
+    const m = document.getElementById('locMenu');
+    m.innerHTML = '';
+    m.hidden = false;
+    SUGGESTIONS.forEach(s => {
+      const d = document.createElement('div');
+      d.className = 'loc-item';
+      d.innerText = s.label;
+      d.onmousedown = e => { e.preventDefault(); applyGeo(s); };
+      d.ontouchstart = () => applyGeo(s);
+      m.appendChild(d);
+    });
+  }
 
-  let bottomLine1 = '', bottomLine2 = '', LST = 0, focusDec = 0;
+  function hideLocMenu(){
+    document.getElementById('locMenu').hidden = true;
+  }
 
-  if (APP_MODE === 'date') {
-    const dVal = document.getElementById('date').value;
-    const calcTime = (showTime && timeStr) ? timeStr : '12:00';
-    const dObj = dVal ? new Date(dVal + 'T' + calcTime) : new Date();
+  // ========================
+  // Star Data
+  // ========================
+  function getMoonPhase(d){
+    const lp = 2551443;
+    const nm = new Date(1970,0,7,20,35,0).getTime();
+    const p = ((d.getTime() - nm) % lp) / lp;
+    return p < 0 ? p + 1 : p;
+  }
 
-    // Approx sidereal time
-    const jd = (dObj.getTime() / 86400000) + 2440587.5;
+  function drawTT(c, text, x, y, tr){
+    if (!text) return;
+    const ch = Array.from(text);
+    let tot = 0;
+    for (const a of ch) tot += c.measureText(a).width;
+    tot += tr * (ch.length - 1);
+    let sx = x - tot / 2;
+    for (const a of ch) {
+      c.fillText(a, sx + c.measureText(a).width / 2, y);
+      sx += c.measureText(a).width + tr;
+    }
+  }
+
+  let STATIC_BG = [];
+  function initBG(size){
+    STATIC_BG = [];
+    const px = size / 20;
+    const rad = 7 * px;
+    const cnt = size > 1500 ? 9000 : 4500;
+    for (let i=0;i<cnt;i++){
+      let r = Math.sqrt(Math.random()) * rad;
+      let a = Math.random() * Math.PI * 2;
+      let bb = Math.abs(Math.cos(a - 0.8));
+      if (Math.random() > (0.3 + 0.7 * bb)) {
+        if (Math.random() > 0.2) continue;
+      }
+      STATIC_BG.push({ x: r * Math.cos(a), y: r * Math.sin(a), sz: size > 1500 ? (Math.random()*0.8+0.8) : (Math.random()*0.6+0.6) });
+    }
+  }
+  initBG(S);
+
+  const STARS=[
+    {id:1,ra:6.75,dec:-16.7,mag:-1.46,n:"SIRIUS"},{id:2,ra:14.26,dec:19.1,mag:-0.05,n:"ARKTUR"},{id:3,ra:5.24,dec:-8.2,mag:0.18,n:"RIGEL"},{id:4,ra:5.92,dec:7.4,mag:0.45,n:"BETEIGEUZE"},{id:5,ra:18.62,dec:38.8,mag:0.03,n:"WEGA"},{id:6,ra:7.66,dec:5.2,mag:0.38,n:"PROKYON"},{id:7,ra:5.28,dec:46.0,mag:0.08,n:"CAPELLA"},{id:8,ra:13.42,dec:-11.2,mag:1.04,n:"SPICA"},{id:9,ra:16.49,dec:-26.4,mag:1.06,n:"ANTARES"},{id:10,ra:19.85,dec:8.9,mag:0.77,n:"ALTAIR"},{id:11,ra:20.69,dec:45.3,mag:1.25,n:"DENEB"},{id:12,ra:4.60,dec:16.5,mag:0.86,n:"ALDEBARAN"},{id:13,ra:2.53,dec:89.3,mag:1.98,n:"POLARIS"},{id:14,ra:10.14,dec:11.9,mag:1.35,n:"REGULUS"},{id:15,ra:7.58,dec:31.9,mag:1.58,n:"CASTOR"},{id:16,ra:7.76,dec:28.0,mag:1.14,n:"POLLUX"},
+    {id:101,ra:11.06,dec:61.8,mag:1.8},{id:102,ra:11.03,dec:56.4,mag:2.4},{id:103,ra:11.90,dec:53.7,mag:2.4},{id:104,ra:12.26,dec:57.0,mag:2.4},{id:105,ra:12.90,dec:56.0,mag:1.8},{id:106,ra:13.40,dec:54.9,mag:2.2},{id:107,ra:13.79,dec:49.3,mag:1.9},
+    {id:110,ra:17.54,dec:71.8,mag:2.0},{id:111,ra:15.34,dec:71.9,mag:3.0},
+    {id:120,ra:0.67,dec:56.5,mag:2.2},{id:121,ra:1.91,dec:63.7,mag:2.3},{id:122,ra:1.43,dec:60.2,mag:2.7},{id:123,ra:0.95,dec:60.7,mag:2.2},{id:124,ra:0.15,dec:59.1,mag:3.0},
+    {id:132,ra:5.60,dec:-1.2,mag:1.7},{id:133,ra:5.68,dec:-1.9,mag:1.7},{id:134,ra:5.82,dec:9.9,mag:1.6},{id:135,ra:5.41,dec:-2.4,mag:2.2},{id:136,ra:5.53,dec:-0.3,mag:2.8},
+    {id:140,ra:20.46,dec:33.9,mag:2.2},{id:141,ra:19.51,dec:27.9,mag:3.0},
+    {id:180,ra:23.08,dec:15.2,mag:2.5},{id:181,ra:23.06,dec:28.1,mag:2.4},{id:182,ra:0.13,dec:29.1,mag:2.1},{id:183,ra:0.22,dec:15.2,mag:2.8},
+    {id:161,ra:11.82,dec:14.6,mag:2.1},{id:162,ra:10.33,dec:19.8,mag:2.0},
+    {id:171,ra:17.56,dec:-37.1,mag:1.6},{id:172,ra:16.20,dec:-19.5,mag:2.3},
+    {id:190,ra:1.16,dec:35.6,mag:2.1},{id:191,ra:2.06,dec:42.3,mag:2.1}
+  ];
+
+  const LINES=[
+    [101,102],[102,103],[103,104],[104,105],[105,106],[106,107],[13,111],[111,110],
+    [120,123],[123,122],[122,121],[121,124],[132,133],[133,135],[134,132],[134,4],[4,133],[133,3],[3,136],
+    [11,140],[140,141],[140,5],[11,5],[15,16],[14,162],[162,161],[172,9],[9,171],
+    [180,181],[181,182],[182,183],[183,180],[182,190],[190,191],[5,10],[10,11],[11,5],[101,13]
+  ];
+
+  // ========================
+  // Render
+  // ========================
+  function renderToCtx(c, size, isHQ){
+    const sc = size / 2362;
+    const px = size / 20;
+
+    c.fillStyle = 'black';
+    c.fillRect(0,0,size,size);
+
+    let dV = document.getElementById('date').value;
+    if (!dV) dV = new Date().toISOString().split('T')[0];
+
+    const tV = document.getElementById('time').value || '12:00';
+    const dO = new Date(dV + 'T' + tV);
+
+    const sT = document.getElementById('checkTitle').checked;
+    const sD = document.getElementById('checkDate').checked;
+    const sTi = document.getElementById('checkTime').checked;
+    const sL = document.getElementById('checkLoc').checked;
+
+    let title = document.getElementById('title').value;
+    if (sT && !title) title = '[ NAME ]';
+
+    let l1 = '';
+    let l2 = '';
+
+    // Sidereal time approx
+    const jd = (dO.getTime()/86400000) + 2440587.5;
     const t = 18.697374558 + 24.06570982441908 * (jd - 2451545.0);
-    LST = (t + GEO.lon / 15.0) % 24;
-    focusDec = GEO.lat;
+    const LST = (t + GEO.lon/15.0) % 24;
+    const fDec = GEO.lat;
 
-    if (showDate) {
-      if (dVal) bottomLine1 = dObj.toLocaleDateString('de-DE', { year:'numeric', month:'long', day:'numeric' }).toUpperCase();
-      else { bottomLine1 = '[ DATUM EINGEBEN ]'; isDatePh = true; }
+    if (sD) l1 = dO.toLocaleDateString('de-DE',{year:'numeric',month:'long',day:'numeric'});
+
+    let locT = '';
+    if (sL) {
+      let l = document.getElementById('loc').value;
+      locT = l.trim().length > 1 ? (GEO.name || l) : '[ ORT ]';
     }
 
-    let locPart = '';
-    let timePart = '';
-
-    if (showLoc) {
-      const val = (document.getElementById('loc').value || '').trim();
-      if (val.length > 1) locPart = (GEO.name || val).toUpperCase();
-      else { locPart = '[ ORT EINGEBEN ]'; isLocPh = true; }
+    let timeT = '';
+    if (sTi) {
+      let tt = document.getElementById('time').value;
+      if (tt) timeT = tt + ' Uhr';
     }
 
-    if (showTime) timePart = timeStr ? (timeStr + ' UHR') : '[ ZEIT ]';
+    if (locT && timeT) l2 = locT + ' • ' + timeT;
+    else if (locT) l2 = locT;
+    else if (timeT) l2 = timeT;
 
-    if (locPart && timePart) bottomLine2 = `${locPart} • ${timePart}`;
-    else bottomLine2 = (locPart + timePart).trim();
+    const rad = 7 * px;
+    const cx = size / 2;
+    const cy = size / 2;
 
-  } else {
-    const sign = document.getElementById('zodiac').value;
-    LST = ZODIAC_CENTER[sign].ra;
-    focusDec = ZODIAC_CENTER[sign].dec;
-    bottomLine1 = document.getElementById('zodiac').options[document.getElementById('zodiac').selectedIndex].text.split('(')[0].toUpperCase().trim();
+    // Clip circle
+    c.save();
+    c.beginPath();
+    c.arc(cx,cy,rad,0,Math.PI*2);
+    c.clip();
 
-    if (showCustom) {
-      let cText = (document.getElementById('customText').value || '').toUpperCase();
-      if (!cText) { cText = '[ TEXT EINGEBEN ]'; isLocPh = true; }
-      bottomLine2 = cText;
+    // Grid
+    c.strokeStyle='rgba(255,255,255,0.12)';
+    c.lineWidth=1;
+    c.setLineDash([4,12]);
+
+    c.beginPath(); c.arc(cx,cy,rad*0.33,0,Math.PI*2); c.stroke();
+    c.beginPath(); c.arc(cx,cy,rad*0.66,0,Math.PI*2); c.stroke();
+    for (let i=0;i<8;i++){
+      const a = i*(Math.PI/4);
+      c.beginPath();
+      c.moveTo(cx,cy);
+      c.lineTo(cx + rad*Math.cos(a), cy + rad*Math.sin(a));
+      c.stroke();
+    }
+    c.setLineDash([]);
+
+    // Stars background
+    c.fillStyle='white';
+    if (isHQ) {
+      const bg=[];
+      for (let i=0;i<9000;i++){
+        let r = Math.sqrt(Math.random())*rad;
+        let a = Math.random()*Math.PI*2;
+        let bb = Math.abs(Math.cos(a-0.8));
+        if (Math.random()>(0.3+0.7*bb)) { if (Math.random()>0.2) continue; }
+        bg.push({x:r*Math.cos(a), y:r*Math.sin(a), sz:Math.random()*0.8+0.8});
+      }
+      for (const b of bg) c.fillRect(cx+b.x, cy+b.y, b.sz, b.sz);
+    } else {
+      for (const b of STATIC_BG) c.fillRect(cx+b.x, cy+b.y, b.sz, b.sz);
+    }
+
+    // Star projection (simple alt/az)
+    const sp = {};
+    for (const s of STARS) {
+      const ha = (LST - s.ra) * 15 * (Math.PI/180);
+      const dec = s.dec * (Math.PI/180);
+      const lat = fDec * (Math.PI/180);
+
+      const sinA = Math.sin(dec)*Math.sin(lat) + Math.cos(dec)*Math.cos(lat)*Math.cos(ha);
+      const alt = Math.asin(sinA);
+      if (alt <= 0) continue;
+
+      const rr = rad * Math.tan((Math.PI/2 - alt)/2);
+      let az = Math.acos((Math.sin(dec) - sinA*Math.sin(lat)) / (Math.cos(alt)*Math.cos(lat)));
+      if (Math.sin(ha) > 0) az = 2*Math.PI - az;
+
+      const x = cx + rr*Math.sin(az);
+      const y = cy - rr*Math.cos(az);
+      sp[s.id] = { x, y };
+
+      const sz = (2.8 + (10.5-2.8) * Math.pow((3.2 - s.mag)/4.8, 1.6)) * sc;
+      c.beginPath();
+      c.arc(x,y,sz,0,Math.PI*2);
+      c.fill();
+
+      if (s.n) {
+        c.font = 'bold ' + Math.round(22*sc) + 'px sans-serif';
+        c.textAlign = 'center';
+        c.textBaseline = 'bottom';
+        c.fillText(s.n, x, y - (sz + 10*sc));
+      }
+    }
+
+    // Lines
+    c.strokeStyle='rgba(255,255,255,0.85)';
+    c.lineWidth=3*sc;
+    c.lineCap='round';
+    c.beginPath();
+    for (const [a,b] of LINES) {
+      if (sp[a] && sp[b]) {
+        c.moveTo(sp[a].x, sp[a].y);
+        c.lineTo(sp[b].x, sp[b].y);
+      }
+    }
+    c.stroke();
+
+    c.restore();
+
+    // Outer ticks
+    c.strokeStyle='white';
+    c.lineWidth=2*sc;
+    const iR = rad + 8*sc;
+    for (let i=0;i<360;i+=2){
+      const a = (i-90) * (Math.PI/180);
+      const len = (i%90===0) ? 25*sc : (i%10===0 ? 18*sc : 8*sc);
+      c.beginPath();
+      c.moveTo(cx + iR*Math.cos(a), cy + iR*Math.sin(a));
+      c.lineTo(cx + (iR+len)*Math.cos(a), cy + (iR+len)*Math.sin(a));
+      c.stroke();
+    }
+
+    // Compass
+    c.fillStyle='white';
+    c.font='bold ' + Math.round(50*sc) + 'px Cinzel';
+    c.textAlign='center';
+    c.textBaseline='middle';
+    c.fillText('N', cx, cy - (rad + 60*sc));
+    c.fillText('O', cx + (rad + 60*sc), cy);
+    c.fillText('S', cx, cy + (rad + 60*sc));
+    c.fillText('W', cx - (rad + 60*sc), cy);
+
+    // Border
+    c.lineWidth=4*sc;
+    c.beginPath();
+    c.arc(cx,cy,rad,0,Math.PI*2);
+    c.stroke();
+
+    // Title & bottom text
+    c.textBaseline='alphabetic';
+
+    if (sT) {
+      c.font = Math.round(85*sc) + 'px Montserrat';
+      if (!document.getElementById('title').value) c.fillStyle = '#666';
+      drawTT(c, title, size/2, 1.5*px, 0);
+      c.fillStyle = 'white';
+    }
+
+    const bY = size - (1.0*px);
+    if (l2) {
+      c.font = '300 ' + Math.round(40*sc) + 'px Montserrat';
+      drawTT(c, l2, size/2, bY, 2*sc);
+      c.font = '700 ' + Math.round(75*sc) + 'px Montserrat';
+      drawTT(c, l1, size/2, bY - 90*sc, 2*sc);
+    } else {
+      c.font = '700 ' + Math.round(75*sc) + 'px Montserrat';
+      drawTT(c, l1, size/2, bY - 45*sc, 2*sc);
+    }
+
+    // Moon icon
+    if (sD) {
+      const p = getMoonPhase(dO);
+      const dw = c.measureText(l1).width;
+      const mx = size/2 + dw/2 + 70*sc;
+      const my = l2 ? (bY - 115*sc) : (bY - 70*sc);
+
+      c.beginPath();
+      c.arc(mx,my,22*sc,0,Math.PI*2);
+      c.lineWidth=2*sc;
+      c.strokeStyle='white';
+      c.stroke();
+
+      if (p>0.05 && p<0.95) {
+        c.beginPath();
+        c.arc(mx,my,22*sc,-Math.PI/2,Math.PI/2,p<0.5);
+        c.fill();
+      }
     }
   }
 
-  // MAP
-  const radius = 7 * PX_CM;
-  const cx = S / 2, cy = S / 2;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.clip();
-
-  // background field
-  ctx.fillStyle = 'white';
-  for (const bg of STATIC_BG_STARS) {
-    ctx.fillRect(cx + bg.x, cy + bg.y, bg.size, bg.size);
+  function render(){
+    if (!ctx) return;
+    renderToCtx(ctx, S, false);
   }
-
-  // stars (B: circles only)
-  const starPos = {};
-  for (const s of STARS_UNIQ) {
-    const ha = (LST - s.ra) * 15 * (Math.PI / 180);
-    const dec = s.dec * (Math.PI / 180);
-    const lat = focusDec * (Math.PI / 180);
-
-    const sinAlt = Math.sin(dec) * Math.sin(lat) + Math.cos(dec) * Math.cos(lat) * Math.cos(ha);
-    const alt = Math.asin(sinAlt);
-
-    if (alt > 0) {
-      const r = radius * Math.tan((Math.PI / 2 - alt) / 2);
-      let az = Math.acos((Math.sin(dec) - sinAlt * Math.sin(lat)) / (Math.cos(alt) * Math.cos(lat)));
-      if (Math.sin(ha) > 0) az = 2 * Math.PI - az;
-
-      const px = cx + r * Math.sin(az);
-      const py = cy - r * Math.cos(az);
-      starPos[s.id] = { x: px, y: py };
-
-      // size mapping: brighter (lower mag) => bigger
-      const m = Math.min(3.2, Math.max(-1.6, s.mag));
-      const tMag = (3.2 - m) / (3.2 + 1.6); // 0..1
-      const sz = LASER.STAR_MIN_R + (LASER.STAR_MAX_R - LASER.STAR_MIN_R) * Math.pow(tMag, 1.6);
-
-      ctx.beginPath();
-      ctx.arc(px, py, sz, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // constellation lines (B: exact thickness)
-  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-  ctx.lineWidth = LASER.LINE_WIDTH;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  for (const [a, b] of LINES) {
-    if (starPos[a] && starPos[b]) {
-      ctx.moveTo(starPos[a].x, starPos[a].y);
-      ctx.lineTo(starPos[b].x, starPos[b].y);
-    }
-  }
-  ctx.stroke();
-
-  ctx.restore();
-  // rings (clean + a bit more premium)
-  ctx.strokeStyle = 'white';
-  ctx.lineCap = 'round';
-
-  // inner ring: slightly thinner
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // outer ring: slimmer + a touch closer (looks calmer with typography)
-  ctx.lineWidth = 7;
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius + 18, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // compass removed (clean layout)
-
-  // TEXT
-  ctx.fillStyle = 'white';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-
-  const topY = 2.0 * PX_CM;
-
-  if (showTitle) {
-    ctx.font = `110px ${fontVal}`;
-    if (isTitlePh) ctx.fillStyle = '#666';
-    const tracking = fontVal.includes('Montserrat') ? 12 : 8;
-    drawTextWithTracking(ctx, title, S / 2, topY, tracking);
-    ctx.fillStyle = 'white';
-  }
-
-  const bottomY = S - (1.0 * PX_CM);
-
-  // Line 2
-  ctx.font = `300 40px ${fontVal}`;
-  if (isLocPh) ctx.fillStyle = '#666';
-  drawTextWithTracking(ctx, bottomLine2, S / 2, bottomY, 4);
-  ctx.fillStyle = 'white';
-
-  // Line 1
-  ctx.font = `700 75px ${fontVal}`;
-  if (isDatePh) ctx.fillStyle = '#666';
-  drawTextWithTracking(ctx, bottomLine1, S / 2, bottomY - 90, 2);
-  ctx.fillStyle = 'white';
-
-  // wall mount holes
-  if (document.getElementById('mount').value === 'wall') {
-    const m = 0.10 * S;
-    const radiusPx = 29;
-    ctx.fillStyle = 'black';
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(m, m, radiusPx, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(S - m, m, radiusPx, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  }
-
-  // BINARIZE (last step)
-  const id = ctx.getImageData(0, 0, S, S);
-  for (let i = 0; i < id.data.length; i += 4) {
-    const v = (id.data[i] + id.data[i + 1] + id.data[i + 2]) / 3 > LASER.THRESHOLD ? 255 : 0;
-    id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
-  }
-  ctx.putImageData(id, 0, 0);
-}
-
-function download() {
-  const l = document.createElement('a');
-  l.download = `SCHIEFER_${APP_MODE}.png`;
-  l.href = document.getElementById('cvs').toDataURL();
-  l.click();
-}
-
-initTouched();
-validateAndRender();
 </script>
 </body>
 </html>
